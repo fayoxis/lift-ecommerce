@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT — Explore Our Products</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#181A1F;
+    --paper:#FBF9F4;
+    --paper-soft:#F1ECDD;
+    --gold:#C4922E;
+    --gold-deep:#9C7420;
+    --gold-pale:#F0DFB8;
+    --star:#E8A93D;
+    --navy:#0B1229;
+    --line:#E7E1D2;
+    --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.tag-label,.footer-logo{font-family:'Fraunces',serif;}
+  img{display:block;width:100%;height:100%;object-fit:cover;}
+  a{text-decoration:none;color:inherit;}
+  ul{list-style:none;}
+  button{font-family:'Inter',sans-serif;cursor:pointer;border:none;}
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 6%;
+    background:rgba(251,249,244,.85);
+    backdrop-filter:blur(10px);
+    position:sticky;top:0;z-index:50;
+    border-bottom:1px solid var(--line);
+  }
+  .logo{
+    font-weight:700;
+    font-size:1.5rem;
+    letter-spacing:1px;
+  }
+  .logo span{color:var(--gold-deep);}
+  nav{display:flex;gap:34px;}
+  nav a{
+    font-size:.95rem;font-weight:500;color:#3d3d3d;
+    position:relative;padding-bottom:4px;
+    transition:color .2s ease;
+  }
+  nav a:hover{color:var(--ink);}
+  nav a.active{color:var(--gold-deep);}
+  nav a.active::after{
+    content:"";position:absolute;left:0;bottom:-6px;width:100%;height:2px;
+    background:var(--gold);border-radius:2px;
+  }
+  .icons{display:flex;gap:22px;align-items:center;font-size:1.05rem;}
+  .icons button{background:none;color:var(--ink);font-size:1.05rem;position:relative;transition:transform .2s ease;}
+  .icons button:hover{transform:translateY(-2px);}
+  #cart-count{
+    position:absolute;top:-8px;right:-10px;background:var(--gold-deep);color:#fff;
+    font-size:.6rem;font-weight:700;border-radius:50%;
+    width:16px;height:16px;display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;text-align:center;padding:100px 6% 90px;overflow:hidden;
+    background:
+      linear-gradient(180deg, rgba(11,18,41,.55), rgba(11,18,41,.72)),
+      url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=80') center/cover no-repeat;
+    color:#fff;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(circle at 50% 0%, rgba(196,146,46,.28), transparent 55%);
+  }
+  .hero-inner{position:relative;z-index:2;}
+  .hero .eyebrow{
+    color:var(--gold-pale);font-size:.75rem;letter-spacing:4px;font-weight:600;
+    text-transform:uppercase;
+  }
+  .hero h1{
+    font-size:3.2rem;font-weight:600;margin-top:14px;letter-spacing:.5px;
+  }
+  .hero p.sub{
+    max-width:500px;margin:16px auto 0;color:#D9DCE6;font-size:1rem;line-height:1.6;
+  }
+  .hero .underline{
+    width:74px;height:3px;background:var(--gold);margin:26px auto 0;border-radius:3px;
+  }
+
+  /* ---------- Section labels ---------- */
+  .section-heading{
+    max-width:1080px;margin:0 auto;padding:56px 6% 6px;
+    display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  }
+  .section-heading h2{font-size:1.75rem;font-weight:600;}
+  .section-heading .count{color:#8a8a8a;font-size:.85rem;letter-spacing:.5px;}
+
+  /* ---------- Product grid ---------- */
+  section.grid-section{padding:24px 6% 10px;}
+  .grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:30px;
+    max-width:1080px;margin:0 auto;
+  }
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;opacity:0;transform:translateY(24px);
+    transition:transform .4s cubic-bezier(.2,.7,.3,1), box-shadow .4s ease, opacity .5s ease;
+  }
+  .card.in-view{opacity:1;transform:translateY(0);}
+  .card:hover{transform:translateY(-8px);box-shadow:0 26px 40px -22px rgba(24,26,31,.28);}
+  .card-media{
+    position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--paper-soft);
+  }
+  .card-media img{transition:transform .7s cubic-bezier(.2,.7,.3,1);}
+  .card:hover .card-media img{transform:scale(1.08) rotate(.3deg);}
+  .card-media::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,.18));
+    pointer-events:none;
+  }
+  .tag-label{
+    position:absolute;top:16px;left:-34px;z-index:2;
+    background:var(--ink);color:#fff;
+    font-size:.66rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;
+    padding:5px 42px;transform:rotate(-45deg);
+    box-shadow:0 3px 8px rgba(0,0,0,.3);
+  }
+  .price-badge{
+    position:absolute;bottom:12px;right:12px;z-index:2;
+    background:rgba(251,249,244,.92);color:var(--ink);
+    font-size:.72rem;font-weight:700;padding:6px 12px;border-radius:20px;
+    letter-spacing:.3px;
+  }
+  .card-body{padding:22px 22px 24px;}
+  .card-body h3{font-size:1.3rem;font-weight:600;margin-bottom:8px;}
+  .rating{display:flex;align-items:center;gap:6px;font-size:.9rem;margin-bottom:12px;color:#555;}
+  .stars{color:var(--star);letter-spacing:1px;}
+  .price-row{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:.78rem;font-weight:700;letter-spacing:1.5px;margin-bottom:18px;
+    text-transform:uppercase;color:#8a8a8a;
+  }
+  .price-row .amount{font-size:1.1rem;color:var(--gold-deep);letter-spacing:0;text-transform:none;font-weight:800;}
+  .add-btn{
+    width:100%;padding:14px;background:var(--gold);color:var(--ink);
+    font-weight:700;border-radius:9px;font-size:.95rem;
+    border:1.5px dashed rgba(24,26,31,.3);
+    transition:background .25s ease, transform .15s ease, color .25s ease;
+  }
+  .add-btn:hover{background:var(--ink);color:#fff;border-color:rgba(255,255,255,.4);}
+  .add-btn:active{transform:scale(.97);}
+
+  /* ---------- View more ---------- */
+  .view-more-wrap{text-align:center;padding:44px 0 10px;}
+  .view-more{
+    background:var(--ink);color:#fff;padding:16px 46px;border-radius:9px;
+    font-weight:600;font-size:.95rem;letter-spacing:.5px;
+    transition:background .25s ease, transform .2s ease;
+  }
+  .view-more:hover{background:#000;transform:translateY(-2px);}
+
+  #more-products{
+    display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s ease;
+  }
+  #more-products > div{overflow:hidden;}
+  #more-products.show{grid-template-rows:1fr;}
+
+  hr.divider{
+    max-width:1080px;margin:20px auto 0;border:none;border-top:1px solid var(--line);
+  }
+
+  /* ---------- Newsletter / form ---------- */
+  .newsletter{
+    max-width:680px;margin:80px auto 0;padding:0 6% 10px;text-align:center;
+  }
+  .newsletter .eyebrow{
+    color:var(--gold-deep);font-size:.72rem;letter-spacing:3px;font-weight:700;text-transform:uppercase;
+  }
+  .newsletter h2{font-size:1.7rem;margin:10px 0 8px;font-weight:600;}
+  .newsletter p{color:#666;font-size:.94rem;margin-bottom:26px;}
+  form.signup{
+    display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+    background:#fff;border:1px solid var(--line);padding:26px;border-radius:var(--radius);
+    box-shadow:0 20px 40px -30px rgba(24,26,31,.3);
+  }
+  form.signup .field{flex:1 1 200px;text-align:left;}
+  form.signup label{
+    display:block;font-size:.7rem;font-weight:700;letter-spacing:1.2px;
+    text-transform:uppercase;color:#8a8a8a;margin-bottom:7px;
+  }
+  form.signup input{
+    width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:8px;
+    font-family:'Inter',sans-serif;font-size:.92rem;background:var(--paper);
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  form.signup input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(196,146,46,.15);}
+  form.signup input.error{border-color:#C1443A;}
+  .error-msg{color:#C1443A;font-size:.75rem;margin-top:6px;min-height:14px;}
+  form.signup button{
+    align-self:flex-end;background:var(--gold);color:var(--ink);font-weight:700;
+    padding:13px 28px;border-radius:8px;font-size:.9rem;margin-top:22px;
+    transition:background .25s ease, color .25s ease;
+  }
+  form.signup button:hover{background:var(--ink);color:#fff;}
+  .form-status{
+    margin-top:18px;font-size:.9rem;font-weight:600;min-height:20px;
+  }
+  .form-status.ok{color:#2E7D4F;}
+  .form-status.bad{color:#C1443A;}
+
+  /* ---------- Footer ---------- */
+  footer{
+    background:var(--navy);color:#EDEEF3;margin-top:80px;padding:56px 6% 26px;
+    position:relative;overflow:hidden;
+  }
+  footer::before{
+    content:"";position:absolute;top:-60px;right:-60px;width:220px;height:220px;
+    background:radial-gradient(circle, rgba(196,146,46,.25), transparent 70%);
+  }
+  .footer-top{
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:34px;
+    max-width:1100px;margin:0 auto;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,.12);
+    position:relative;z-index:2;
+  }
+  .footer-logo{font-weight:700;font-size:1.7rem;border:2px solid #fff;padding:7px 16px;display:inline-block;letter-spacing:1px;}
+  .footer-contact p{font-size:.88rem;margin-bottom:11px;color:#C7CAD6;}
+  .footer-social{display:flex;gap:14px;margin-top:12px;}
+  .footer-social span{
+    width:32px;height:32px;border:1px solid rgba(255,255,255,.3);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:.72rem;color:#EDEEF3;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .footer-social span:hover{background:var(--gold);color:var(--ink);transform:translateY(-3px);}
+  .footer-bottom{
+    max-width:1100px;margin:22px auto 0;display:flex;justify-content:space-between;
+    flex-wrap:wrap;font-size:.78rem;color:#8B8FA3;position:relative;z-index:2;
+  }
+  .footer-bottom a{margin-right:16px;transition:color .2s ease;}
+  .footer-bottom a:hover{color:#fff;}
+
+  /* Toast */
+  #toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:13px 24px;border-radius:9px;
+    font-size:.88rem;opacity:0;pointer-events:none;transition:opacity .3s ease, transform .3s ease;
+    z-index:100;box-shadow:0 14px 30px -12px rgba(0,0,0,.4);
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:720px){
+    nav{display:none;}
+    .grid{grid-template-columns:1fr;}
+    .hero h1{font-size:2.1rem;}
+    .hero{padding:80px 6% 70px;}
+    form.signup button{align-self:stretch;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">L<span>I</span>FT</div>
+  <nav>
+      <a href="index.html" class="nav-link">Home</a>
+     <li><a href="products.html">Products</a></li>
+      <li><a href="ourservices.html">Our Services</a></li>
+  </nav>
+  <div class="icons">
+    <button aria-label="search">🔍</button>
+    <button aria-label="account">👤</button>
+    <button aria-label="cart">🛒<span id="cart-count">0</span></button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">New arrivals every week</div>
+    <h1>Explore Our Products</h1>
+    <p class="sub">Footwear, bags, tech, and fine jewelry — handpicked for quality and priced fairly, all in one place.</p>
+    <div class="underline"></div>
+  </div>
+</section>
+
+<div class="section-heading">
+  <h2>Featured</h2>
+  <span class="count">04 pieces</span>
+</div>
+
+<section class="grid-section">
+  <div class="grid" id="grid-1">
+
+    <div class="card" data-name="Sneakers" data-price="45000">
+      <div class="card-media">
+        <span class="tag-label">Footwear</span>
+        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=700&q=80"
+             alt="Pair of white and black sneakers"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=700&q=80';this.dataset.f2='1';"
+             onerror2="fallback">
+        <span class="price-badge">45000F</span>
+      </div>
+      <div class="card-body">
+        <h3>Sneakers</h3>
+        <div class="rating"><span class="stars">★★★★☆</span> 4.5</div>
+        <div class="price-row"><span>Price</span><span class="amount">45000F</span></div>
+        <button class="add-btn">Add To Chart</button>
+      </div>
+    </div>
+
+    <div class="card" data-name="Handbag" data-price="60000">
+      <div class="card-media">
+        <span class="tag-label">Bags</span>
+        <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=700&q=80"
+             alt="Brown leather handbag"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=700&q=80';">
+        <span class="price-badge">60000F</span>
+      </div>
+      <div class="card-body">
+        <h3>Handbag</h3>
+        <div class="rating"><span class="stars">★★★★☆</span> 4.6</div>
+        <div class="price-row"><span>Price</span><span class="amount">60000F</span></div>
+        <button class="add-btn">Add To Chart</button>
+      </div>
+    </div>
+
+    <div class="card" data-name="Smart TV" data-price="250000">
+      <div class="card-media">
+        <span class="tag-label">Electronics</span>
+        <img src="https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=700&q=80"
+             alt="Flat screen smart television"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1461151304267-38535e780c79?w=700&q=80';">
+        <span class="price-badge">250000F</span>
+      </div>
+      <div class="card-body">
+        <h3>Smart TV</h3>
+        <div class="rating"><span class="stars">★★★★☆</span> 4.7</div>
+        <div class="price-row"><span>Price</span><span class="amount">250000F</span></div>
+        <button class="add-btn">Add To Chart</button>
+      </div>
+    </div>
+
+    <div class="card" data-name="Smartphone" data-price="180000">
+      <div class="card-media">
+        <span class="tag-label">Electronics</span>
+        <img src="https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?w=700&q=80"
+             alt="Modern smartphone"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=700&q=80';">
+        <span class="price-badge">180000F</span>
+      </div>
+      <div class="card-body">
+        <h3>Smartphone</h3>
+        <div class="rating"><span class="stars">★★★★★</span> 4.8</div>
+        <div class="price-row"><span>Price</span><span class="amount">180000F</span></div>
+        <button class="add-btn">Add To Chart</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="view-more-wrap">
+    <button class="view-more" id="toggle-more-1">View more</button>
+  </div>
+</section>
+
+<hr class="divider">
+
+<div class="section-heading">
+  <h2>What You May Also Like</h2>
+  <span class="count">04 pieces</span>
+</div>
+
+<section class="grid-section">
+  <div class="grid" id="grid-2">
+
+    <div class="card" data-name="Gold Necklace" data-price="90000">
+      <div class="card-media">
+        <span class="tag-label">Jewelry</span>
+        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=700&q=80"
+             alt="Gold necklace on display"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=700&q=80';">
+        <span class="price-badge">90000F</span>
+      </div>
+      <div class="card-body">
+        <h3>Gold Necklace</h3>
+        <div class="rating"><span class="stars">★★★★☆</span> 4.6</div>
+        <div class="price-row"><span>Price</span><span class="amount">90000F</span></div>
+        <button class="add-btn">Add To Chart</button>
+      </div>
+    </div>
+
+    <div class="card" data-name="Leather Boots" data-price="55000">
+      <div class="card-media">
+        <span class="tag-label">Footwear</span>
+        <img src="https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=700&q=80"
+             alt="Pair of leather boots"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542840410-3092f99611a3?w=700&q=80';">
+        <span class="price-badge">55000F</span>
+      </div>
+      <div class="card-body">
+        <h3>Leather Boots</h3>
+        <div class="rating"><span class="stars">★★★★☆</span> 4.4</div>
+        <div class="price-row"><span>Price</span><span class="amount">55000F</span></div>
+        <button class="add-btn">Add To Chart</button>
+      </div>
+    </div>
+
+    <div class="card" data-name="Backpack" data-price="35000">
+      <div class="card-media">
+        <span class="tag-label">Bags</span>
+        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=700&q=80"
+             alt="Canvas backpack"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=700&q=80';">
+        <span class="price-badge">35000F</span>
+      </div>
+      <div class="card-body">
+        <h3>Backpack</h3>
+        <div class="rating"><span class="stars">★★★★☆</span> 4.3</div>
+        <div class="price-row"><span>Price</span><span class="amount">35000F</span></div>
+        <button class="add-btn">Add To Chart</button>
+      </div>
+    </div>
+
+    <div class="card" data-name="Smartwatch" data-price="75000">
+      <div class="card-media">
+        <span class="tag-label">Electronics</span>
+        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=700&q=80"
+             alt="Smartwatch on wrist"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544117519-31a4b719223d?w=700&q=80';">
+        <span class="price-badge">75000F</span>
+      </div>
+      <div class="card-body">
+        <h3>Smartwatch</h3>
+        <div class="rating"><span class="stars">★★★★☆</span> 4.5</div>
+        <div class="price-row"><span>Price</span><span class="amount">75000F</span></div>
+        <button class="add-btn">Add To Chart</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="more-products">
+    <div>
+      <div class="grid" style="margin-top:30px;">
+        <div class="card" data-name="Diamond Ring" data-price="150000">
+          <div class="card-media">
+            <span class="tag-label">Jewelry</span>
+            <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=700&q=80"
+                 alt="Diamond ring close up"
+                 loading="lazy"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1600721391689-2564bb8055de?w=700&q=80';">
+            <span class="price-badge">150000F</span>
+          </div>
+          <div class="card-body">
+            <h3>Diamond Ring</h3>
+            <div class="rating"><span class="stars">★★★★★</span> 4.9</div>
+            <div class="price-row"><span>Price</span><span class="amount">150000F</span></div>
+            <button class="add-btn">Add To Chart</button>
+          </div>
+        </div>
+        <div class="card" data-name="Laptop" data-price="320000">
+          <div class="card-media">
+            <span class="tag-label">Electronics</span>
+            <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=700&q=80"
+                 alt="Laptop computer"
+                 loading="lazy"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=700&q=80';">
+            <span class="price-badge">320000F</span>
+          </div>
+          <div class="card-body">
+            <h3>Laptop</h3>
+            <div class="rating"><span class="stars">★★★★★</span> 4.8</div>
+            <div class="price-row"><span>Price</span><span class="amount">320000F</span></div>
+            <button class="add-btn">Add To Chart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view-more-wrap">
+    <button class="view-more" id="toggle-more-2">View more</button>
+  </div>
+</section>
+
+<div class="newsletter">
+  <div class="eyebrow">Join the list</div>
+  <h2>Stay in the loop</h2>
+  <p>Get new drops and restock alerts before anyone else.</p>
+  <form class="signup" id="signup-form" novalidate>
+    <div class="field">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" placeholder="Your name">
+      <div class="error-msg" id="name-error"></div>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com">
+      <div class="error-msg" id="email-error"></div>
+    </div>
+    <button type="submit">Subscribe</button>
+  </form>
+  <div class="form-status" id="form-status"></div>
+</div>
+
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">LIFT</div>
+    </div>
+    <div class="footer-contact">
+      <p>345 Fauliconer Drive, Suite 4, Charlottesville, CA, 12345</p>
+      <p>(123) 456-7890</p>
+      <p>Social Media</p>
+      <div class="footer-social">
+        <span>f</span><span>t</span><span>in</span><span>ig</span><span>p</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>
+      <a href="#">About Us</a>
+      <a href="#">Contact Us</a>
+      <a href="#">Help</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Disclaimer</a>
+    </div>
+    <div>Copyright © 2026 · Lift Media Inc.</div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT — Style For Everyone</title>
+ <link rel="stylesheet" href="landimgpage.css">
+ <script src="jsfolder.js" defer></script>
+
+</head>
+<body>
+
+<header>
+  <div class="logo">LIFT</div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">LOGO</button>
+  <nav id="navMenu">
+    <ul>
+      <li><a href="#top">Home</a></li>
+      <li><a href="products.html">Products</a></li>
+      <li><a href="ourservices.html">Our Services</a></li>
+    </ul>
+  </nav>
+  <div class="header-icons">
+    <button aria-label="Search">🔍</button>
+    <div class="account-wrap">
+      <button aria-label="Account" id="accountToggle">👤</button>
+      <div class="account-menu" id="accountMenu">
+        <!-- filled in by jsfolder.js depending on whether someone is logged in -->
+      </div>
+    </div>
+    <button aria-label="Cart" id="cartBtn">🛍️<span class="cart-count" id="cartCount">0</span></button>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-text">
+    <h1>Style<br>For Everyone</h1>
+    <p>Discover the latest trends in men's and women's fashion.</p>
+    <div class="hero-buttons">
+      <button class="btn-black">Shop Now</button>
+      <button class="btn-black btn-outline">Explore Now</button>
+    </div>
+  </div>
+  <div class="hero-image">
+    <img src="https://picsum.photos/seed/lift-hero/900/700" alt="Fashion editorial portrait">
+  </div>
+</section>
+
+<section class="products" id="products">
+  <h2 class="section-title">Our Products</h2>
+  <div class="product-grid" id="productGrid"></div>
+  <div class="view-more-wrap">
+    <button class="btn-black view-more">View more</button>
+  </div>
+</section>
+
+<section class="categories">
+  <h2 class="section-title">Shop By Category</h2>
+  <div class="cat-grid" id="catGrid"></div>
+</section>
+
+<section class="promo">
+  <div class="promo-text">
+    <h2>Summer Collection 2026</h2>
+    <p>Up to 5% OFF</p>
+    <button class="btn-black">Shop Now</button>
+  </div>
+  <div class="promo-img">
+    <img src="https://picsum.photos/seed/lift-summer/700/500" alt="Summer collection model">
+  </div>
+</section>
+
+<section class="services" id="services">
+  <h2 class="section-title">Our Services</h2>
+  <div class="services-grid" id="serviceGrid"></div>
+</section>
+
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">LIFT</div>
+    </div>
+    <div class="footer-contact">
+      <div class="row">
+        <div>📍 345 Faulconer Drive, Suite 4, Charlottesville, CA, 12345</div>
+      </div>
+      <div class="row">
+        <div>📞 (123) 456-7890</div>
+        <div>🖨️ (123) 456-7890</div>
+      </div>
+    </div>
+    <div>
+      <div class="social-label">Social Media</div>
+      <div class="social-icons" id="socialIcons"></div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <ul>
+      <li><a href="#">About Us</a></li>
+      <li><a href="#">Contact Us</a></li>
+      <li><a href="#">Help</a></li>
+      <li><a href="#">Privacy Policy</a></li>
+      <li><a href="#">Disclaimer</a></li>
+    </ul>
+    <div>Copyright © 2026 Lift Media Inc.</div>
+  </div>
+</footer>
+
+<div class="toast" id="toast">Added to cart</div>
+
+
+</body>
+</html>
