@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT  Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/lift-shop.css">
+<link rel="stylesheet" href="../css/setting.css">
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<div class="lift-page">
+  <a href="profile.html" class="lift-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to profile
+  </a>
+  <h1 class="lift-page-title">Settings</h1>
+  <div id="settingsContent"></div>
+</div>
+
+<div id="lift-footer"></div>
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('products');
+  LIFT.mountFooter();
+
+  var host = document.getElementById('settingsContent');
+  var user = LIFT.user.get();
+
+  if(!user){
+    host.innerHTML =
+      '<div class="lift-empty">' +
+        '<div class="lift-empty-icon">' + LIFT.icon('lock') + '</div>' +
+        '<h3>Log in to manage settings</h3>' +
+        '<p>Account settings are only visible once you\'re signed in.</p>' +
+        '<a href="' + LIFT.loginUrl('#login') + '" class="lift-btn lift-btn-primary">Log In</a>' +
+      '</div>';
+  } else {
+    var PREF_KEY = 'lift_prefs_' + (user.email || user.username || 'guest').toLowerCase();
+    var prefs = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
+    var defaults = { orderUpdates:true, promos:false, sms:true };
+    prefs = Object.assign({}, defaults, prefs);
+
+    function savePrefs(){ localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); }
+    var f = function(v){ return LIFT.escapeHTML(v || ''); };
+
+    // Country dropdown uses the exact same list + order as the login/signup
+    // page. If the saved value isn't one of them, fall back to "Other" and
+    // preload their existing text into the free-text field.
+    var savedCountry = (user.country || '').trim();
+    var isKnownCountry = LIFT.phone.COUNTRIES.indexOf(savedCountry) > -1 && savedCountry !== 'Other';
+    var knownCountry = savedCountry === '' ? '' : (isKnownCountry ? savedCountry : 'Other');
+    var otherCountryValue = (savedCountry !== '' && !isKnownCountry) ? savedCountry : '';
+
+    var t = LIFT.cart.totals();
+    var lastOrder = LIFT.orders.list()[0];
+    var wallets = [];
+    if(user.phone) wallets.push({ label:'MTN Mobile Money', cls:'mtn', num:user.phone });
+    if(lastOrder && lastOrder.phone && lastOrder.method === 'Orange Money') wallets.push({ label:'Orange Money', cls:'orange', num:lastOrder.phone });
+
+    host.innerHTML =
+      '<div class="settings-grid">' +
+
+        '<div class="settings-card">' +
+          '<div class="profile-avatar-row">' +
+            '<div class="profile-avatar" id="settingsAvatar" title="Click to change profile photo">' + (user.avatar ? '<img src="' + user.avatar + '" alt="">' : LIFT.user.initial(user)) + '</div>' +
+            '<div><h3>Account Details</h3><div class="sub">Update the personal information on your profile.</div><span class="avatar-change-link" id="avatarChangeLink">Change photo</span></div>' +
+            '<input type="file" accept="image/*" id="settingsAvatarInput" style="display:none;">' +
+          '</div>' +
+          '<form id="profileForm">' +
+            '<div class="field-grid">' +
+              '<div class="field"><label>First name</label><input type="text" id="pFirst" value="' + f(user.first) + '"></div>' +
+              '<div class="field"><label>Last name</label><input type="text" id="pLast" value="' + f(user.last) + '"></div>' +
+              '<div class="field"><label class="field-locked-label">Username <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></label><input type="text" id="pUsername" value="' + f(user.username) + '" readonly title="Username can\'t be changed once registered"><span class="field-hint">This can\'t be changed after registration.</span></div>' +
+              '<div class="field"><label>Phone</label><input type="tel" inputmode="tel" id="pPhone" value="' + f(user.phone) + '" maxlength="24"><span class="field-hint" id="pPhoneHint"></span></div>' +
+              '<div class="field full"><label>Email</label><input type="email" id="pEmail" value="' + f(user.email) + '"></div>' +
+              '<div class="field"><label>City</label><input type="text" id="pCity" value="' + f(user.city) + '"></div>' +
+              '<div class="field"><label>Country</label><select id="pCountry">' + LIFT.phone.optionsHTML(knownCountry) + '</select></div>' +
+              '<div class="field full field-other" id="fCountryOther"><label>Enter your country</label><input type="text" id="pCountryOther" value="' + f(otherCountryValue) + '" placeholder="Type your country name"></div>' +
+              '<div class="field full"><label>Address</label><input type="text" id="pAddress" value="' + f(user.address) + '"></div>' +
+              '<div class="field"><label>Role / Title</label><input type="text" id="pRole" value="' + f(user.role) + '" placeholder="e.g. Frequent Shopper"></div>' +
+            '</div>' +
+            '<button type="submit" class="lift-btn lift-btn-primary" style="margin-top:8px;">Save Changes</button>' +
+          '</form>' +
+        '</div>' +
+
+        '<div class="settings-card">' +
+          '<h3>Change Password</h3>' +
+          '<div class="sub">Keep your account secure with a strong password.</div>' +
+          '<form id="pwForm">' +
+            '<div class="field"><label>Current password</label><input type="password" id="curPw" placeholder="••••••••"></div>' +
+            '<div class="row-2">' +
+              '<div class="field"><label>New password</label><input type="password" id="newPw" placeholder="••••••••"></div>' +
+              '<div class="field"><label>Confirm new password</label><input type="password" id="confPw" placeholder="••••••••"></div>' +
+            '</div>' +
+            '<button type="submit" class="lift-btn lift-btn-primary">Update Password</button>' +
+          '</form>' +
+        '</div>' +
+
+        '<div class="settings-card">' +
+          '<h3>Notifications</h3>' +
+          '<div class="sub">Choose what LIFT keeps you posted about.</div>' +
+          '<div class="toggle-row"><div><strong>Order updates</strong><span>Status changes for your orders</span></div>' +
+            '<label class="switch"><input type="checkbox" id="prefOrders" ' + (prefs.orderUpdates?'checked':'') + '><span class="slider"></span></label></div>' +
+          '<div class="toggle-row"><div><strong>Promotions</strong><span>Deals, drops and discount codes</span></div>' +
+            '<label class="switch"><input type="checkbox" id="prefPromos" ' + (prefs.promos?'checked':'') + '><span class="slider"></span></label></div>' +
+          '<div class="toggle-row"><div><strong>SMS alerts</strong><span>Delivery texts to ' + LIFT.escapeHTML(user.phone || 'your phone') + '</span></div>' +
+            '<label class="switch"><input type="checkbox" id="prefSms" ' + (prefs.sms?'checked':'') + '><span class="slider"></span></label></div>' +
+        '</div>' +
+
+        '<div class="settings-card">' +
+          '<h3>Saved Mobile Money</h3>' +
+          '<div class="sub">Numbers used for MTN / Orange checkout.</div>' +
+          (wallets.length ? wallets.map(function(w){
+            return '<div class="wallet-row"><div style="display:flex;align-items:center;gap:12px;">' +
+              '<div class="wallet-chip ' + w.cls + '">' + (w.cls==='mtn'?'MTN':'OM') + '</div>' +
+              '<div><div class="w-name">' + w.label + '</div><div class="w-num">' + LIFT.escapeHTML(w.num) + '</div></div>' +
+              '</div></div>';
+          }).join('') : '<div class="sub" style="margin-bottom:0;">No mobile money number on file yet — it\'s saved automatically the first time you pay.</div>') +
+        '</div>' +
+
+        '<div class="settings-card danger">' +
+          '<h3>Danger Zone</h3>' +
+          '<div class="sub">These actions are permanent and can\'t be undone.</div>' +
+          '<div style="display:flex;gap:12px;flex-wrap:wrap;">' +
+            '<button type="button" class="lift-btn lift-btn-outline" id="clearCartBtn">Clear My Cart</button>' +
+            '<button type="button" class="lift-btn lift-btn-danger" id="deleteAcctBtn">Delete Account</button>' +
+          '</div>' +
+        '</div>' +
+
+      '</div>';
+
+    // Country <select> + phone dial-code auto-fill — driven by the same
+    // LIFT.phone system used on the login/signup page, so behaviour and
+    // formatting stay identical across the site.
+    var pCountrySelect = document.getElementById('pCountry');
+    var pCountryOtherField = document.getElementById('fCountryOther');
+    var pCountryOtherInput = document.getElementById('pCountryOther');
+    var pPhoneInput = document.getElementById('pPhone');
+    var pPhoneHint = document.getElementById('pPhoneHint');
+
+    function syncCountryOther(){
+      var isOther = pCountrySelect.value === 'Other';
+      pCountryOtherField.classList.toggle('open', isOther);
+      if(!isOther) pCountryOtherInput.value = '';
+    }
+    pCountrySelect.addEventListener('change', syncCountryOther);
+    syncCountryOther();
+
+    LIFT.phone.attach(pPhoneInput, pCountrySelect, pPhoneHint);
+
+    function resolvedCountry(){
+      return pCountrySelect.value === 'Other' ? pCountryOtherInput.value.trim() : pCountrySelect.value;
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', function(e){
+      e.preventDefault();
+
+      var phoneCheck = LIFT.phone.validate(pPhoneInput.value);
+      if(!phoneCheck.ok){
+        LIFT.toast(phoneCheck.msg);
+        pPhoneInput.focus();
+        return;
+      }
+      if(pCountrySelect.value === 'Other' && pCountryOtherInput.value.trim() === ''){
+        LIFT.toast('Enter your country');
+        pCountryOtherInput.focus();
+        return;
+      }
+
+      var updated = Object.assign({}, user, {
+        first: document.getElementById('pFirst').value.trim(),
+        last: document.getElementById('pLast').value.trim(),
+        username: user.username,
+        phone: pPhoneInput.value.trim(),
+        email: document.getElementById('pEmail').value.trim(),
+        city: document.getElementById('pCity').value.trim(),
+        country: resolvedCountry(),
+        address: document.getElementById('pAddress').value.trim(),
+        role: document.getElementById('pRole').value.trim()
+      });
+      LIFT.user.set(updated);
+      user = updated;
+      LIFT.toast('Profile updated');
+      LIFT.mountHeader('products');
+    });
+
+    var avatarBox = document.getElementById('settingsAvatar');
+    var avatarInput = document.getElementById('settingsAvatarInput');
+    var avatarLink = document.getElementById('avatarChangeLink');
+    [avatarBox, avatarLink].forEach(function(el){
+      el.addEventListener('click', function(){ avatarInput.click(); });
+    });
+    avatarInput.addEventListener('change', function(){
+      var file = this.files && this.files[0];
+      if(!file) return;
+      LIFT.user.readImageFile(file, 400, function(dataUrl){
+        if(!dataUrl){ LIFT.toast('Please choose an image file'); return; }
+        LIFT.user.setAvatar(dataUrl);
+        user = LIFT.user.get();
+        avatarBox.innerHTML = '<img src="' + dataUrl + '" alt="">';
+        LIFT.toast('Profile photo updated');
+      });
+    });
+
+    document.getElementById('pwForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      var np = document.getElementById('newPw').value;
+      var cp = document.getElementById('confPw').value;
+      if(np.length < 6){ LIFT.toast('New password should be at least 6 characters'); return; }
+      if(np !== cp){ LIFT.toast("Passwords don't match"); return; }
+      LIFT.toast('Password updated');
+      e.target.reset();
+    });
+
+    ['prefOrders','prefPromos','prefSms'].forEach(function(id, i){
+      var key = ['orderUpdates','promos','sms'][i];
+      document.getElementById(id).addEventListener('change', function(ev){
+        prefs[key] = ev.target.checked;
+        savePrefs();
+        LIFT.toast('Preferences saved');
+      });
+    });
+
+    document.getElementById('clearCartBtn').addEventListener('click', function(){
+      LIFT.cart.clear();
+      LIFT.toast('Cart cleared');
+    });
+
+    document.getElementById('deleteAcctBtn').addEventListener('click', function(){
+      if(confirm('Delete your LIFT account? This removes your profile from this device.')){
+        localStorage.removeItem(PREF_KEY);
+        LIFT.user.logout();
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

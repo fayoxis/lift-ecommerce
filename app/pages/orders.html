@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT  My Orders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/lift-shop.css">
+<style>
+  .order-card{
+    background:var(--lh-surface);border:1px solid var(--lh-line);border-radius:16px;margin-bottom:20px;overflow:hidden;
+  }
+  .order-card-head{
+    display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+    padding:16px 22px;background:var(--lh-paper-soft);
+  }
+  .order-id{font-weight:700;font-family:var(--lh-font-display);}
+  .order-date{font-size:.78rem;color:var(--lh-text-soft);}
+  .order-items{padding:14px 22px;}
+  .order-item-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-top:1px solid var(--lh-paper-soft);}
+  .order-item-row:first-child{border-top:none;}
+  .order-item-row img{width:46px;height:46px;border-radius:8px;object-fit:cover;flex-shrink:0;}
+  .order-item-row .oi-name{font-weight:600;font-size:.9rem;flex:1;}
+  .order-item-row .oi-qty{color:var(--lh-text-soft);font-size:.82rem;}
+  .order-item-row .oi-price{font-weight:700;font-size:.86rem;}
+  .oi-publicize{
+    background:none;border:1px solid var(--lh-line);color:var(--lh-text-soft);font-size:.72rem;font-weight:700;
+    padding:6px 11px;border-radius:14px;cursor:pointer;flex-shrink:0;white-space:nowrap;
+  }
+  .oi-publicize:hover{border-color:var(--lh-gold);color:var(--lh-gold-deep);}
+  .order-card-foot{
+    display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;
+    padding:16px 22px;border-top:1px solid var(--lh-line);
+  }
+  .order-total{font-weight:800;font-size:1.05rem;}
+  .order-meta{font-size:.78rem;color:var(--lh-text-soft);}
+  .progress-track{display:flex;align-items:center;gap:6px;margin:14px 22px 0;}
+  .progress-step{flex:1;height:5px;border-radius:3px;background:var(--lh-paper-soft);}
+  .progress-step.done{background:var(--lh-gold);}
+  .progress-step.cancelled{background:var(--lh-red);}
+  .order-actions{display:flex;gap:10px;}
+  .order-actions .lift-btn{padding:9px 16px;font-size:.8rem;}
+  .login-gate{text-align:center;padding:70px 20px;}
+</style>
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<div class="lift-page">
+  <a href="../index.html" class="lift-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Home
+  </a>
+  <h1 class="lift-page-title">My Orders</h1>
+  <div id="ordersContent"></div>
+</div>
+
+<div id="lift-footer"></div>
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('products');
+  LIFT.mountFooter();
+
+  var host = document.getElementById('ordersContent');
+  var STATUS_STEPS = ['Processing', 'Shipped', 'Delivered'];
+
+  function badgeClass(status){
+    return { Processing:'lift-badge-processing', Shipped:'lift-badge-shipped',
+             Delivered:'lift-badge-delivered', Cancelled:'lift-badge-cancelled' }[status];
+  }
+
+  function renderProgress(status){
+    if(status === 'Cancelled'){
+      return '<div class="progress-track"><div class="progress-step cancelled"></div><div class="progress-step cancelled"></div><div class="progress-step cancelled"></div></div>';
+    }
+    var idx = STATUS_STEPS.indexOf(status);
+    return '<div class="progress-track">' + STATUS_STEPS.map(function(_, i){
+      return '<div class="progress-step ' + (i <= idx ? 'done' : '') + '"></div>';
+    }).join('') + '</div>';
+  }
+
+  function render(){
+    if(!LIFT.user.get()){
+      host.innerHTML =
+        '<div class="lift-empty login-gate">' +
+          '<div class="lift-empty-icon">' + LIFT.icon('lock') + '</div>' +
+          '<h3>Log in to see your orders</h3>' +
+          '<p>Your order history is tied to your LIFT account.</p>' +
+          '<a href="' + LIFT.loginUrl('#login') + '" class="lift-btn lift-btn-primary">Log In</a>' +
+        '</div>';
+      return;
+    }
+
+    var orders = LIFT.orders.list();
+    if(!orders.length){
+      host.innerHTML =
+        '<div class="lift-empty">' +
+          '<div class="lift-empty-icon">' + LIFT.icon('package') + '</div>' +
+          '<h3>No orders yet</h3>' +
+          '<p>Once you place an order it will show up here with live status.</p>' +
+          '<a href="products.html" class="lift-btn lift-btn-primary">Start Shopping</a>' +
+        '</div>';
+      return;
+    }
+
+    host.innerHTML = orders.map(function(o){
+      var status = LIFT.orders.status(o);
+      var date = new Date(o.createdAt).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      var items = o.items.map(function(l){
+        return '<div class="order-item-row"><img src="' + l.img + '" alt="' + l.name + '">' +
+          '<span class="oi-name">' + l.name + '</span>' +
+          '<span class="oi-qty">×' + l.qty + '</span>' +
+          '<span class="oi-price">' + LIFT.fcfa(l.lineTotal) + '</span>' +
+          '<button type="button" class="oi-publicize" data-id="' + l.id + '" title="Share this purchase on the Feed">' + LIFT.icon('megaphone') + ' Publicize</button></div>';
+      }).join('');
+
+      return (
+        '<div class="order-card" data-id="' + o.id + '">' +
+          '<div class="order-card-head">' +
+            '<div><div class="order-id">' + o.id + '</div><div class="order-date">' + date + '</div></div>' +
+            '<span class="lift-badge ' + badgeClass(status) + '">' + status + '</span>' +
+          '</div>' +
+          renderProgress(status) +
+          '<div class="order-items">' + items + '</div>' +
+          '<div class="order-card-foot">' +
+            '<div>' +
+              '<div class="order-total">' + LIFT.fcfa(o.total) + '</div>' +
+              '<div class="order-meta">Paid via ' + o.method + ' · ' + o.phone + '</div>' +
+            '</div>' +
+            '<div class="order-actions">' +
+              (status === 'Processing' ? '<button type="button" class="lift-btn lift-btn-danger cancel-order-btn">Cancel Order</button>' : '') +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  host.addEventListener('click', function(e){
+    var cancelBtn = e.target.closest('.cancel-order-btn');
+    if(cancelBtn){
+      var card = cancelBtn.closest('.order-card');
+      if(LIFT.orders.cancel(card.dataset.id)){
+        LIFT.toast('Order cancelled');
+        render();
+      }
+      return;
+    }
+    var pubBtn = e.target.closest('.oi-publicize');
+    if(pubBtn){
+      window.location.href = 'profile.html?type=purchase&productId=' + encodeURIComponent(pubBtn.dataset.id) + '#profileFeedPanel';
+    }
+  });
+
+  render();
+</script>
+
+</body>
+</html>

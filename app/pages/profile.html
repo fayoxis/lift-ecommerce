@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT  My Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/lift-shop.css">
+<link rel="stylesheet" href="../css/profile.css">
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<div class="lift-page dash-page">
+  <a href="../index.html" class="lift-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Home
+  </a>
+  <h1 class="lift-page-title">My Profile</h1>
+  <div id="profileContent"></div>
+</div>
+
+<div id="lift-footer"></div>
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('products');
+  LIFT.mountFooter();
+
+  var host = document.getElementById('profileContent');
+  var user = LIFT.user.get();
+
+  if(!user){
+    host.innerHTML =
+      '<div class="lift-empty">' +
+        '<div class="lift-empty-icon">' + LIFT.icon('lock') + '</div>' +
+        '<h3>Log in to view your profile</h3>' +
+        '<p>Create an account or log in to see your shopper dashboard.</p>' +
+        '<a href="' + LIFT.loginUrl('#login') + '" class="lift-btn lift-btn-primary">Log In</a>' +
+      '</div>';
+  } else {
+    renderProfile();
+  }
+
+  function renderProfile(){
+    var f = function(v){ return LIFT.escapeHTML(v || ''); };
+    var orders = LIFT.orders.list();
+    var cartTotals = LIFT.cart.totals();
+
+    // ---- Purchase history (flatten every order's line items, newest first) ----
+    var historyRows = [];
+    orders.forEach(function(o){
+      o.items.forEach(function(l){
+        historyRows.push({ id:l.id, name:l.name, img:l.img, qty:l.qty, at:o.createdAt });
+      });
+    });
+    historyRows.sort(function(a,b){ return b.at - a.at; });
+    var totalItemsBought = historyRows.reduce(function(s,r){ return s + r.qty; }, 0);
+
+    // ---- Follow system ----
+    var followingList = LIFT.social.followingList();
+    var followersCount = LIFT.social.followersCount();
+    var followingCount = LIFT.social.followingCount();
+
+    // ---- Stat tiles ----
+    var delivered = orders.filter(function(o){ return LIFT.orders.status(o) === 'Delivered'; }).length;
+    var processing = orders.filter(function(o){ return LIFT.orders.status(o) === 'Processing'; }).length;
+    var totalSpent = orders.reduce(function(s,o){ return s + o.total; }, 0);
+    var totalSaved = orders.reduce(function(s,o){ return s + (o.discount||0); }, 0);
+
+    // ---- Category breakdown (spend %) ----
+    var catTotals = {};
+    orders.forEach(function(o){
+      o.items.forEach(function(l){
+        var p = LIFT.getProduct(l.id);
+        var cat = p ? p.category : 'Other';
+        catTotals[cat] = (catTotals[cat] || 0) + l.lineTotal;
+      });
+    });
+    var catColors = { Apparel:'#C4922E', Footwear:'#3E7CB1', Electronics:'#7A5FC7', Bags:'#D97B4F', Jewelry:'#B0455C', Other:'var(--lh-text-soft)' };
+    var catIcons = { Apparel:'shirt', Footwear:'footprints', Electronics:'monitor', Bags:'handbag', Jewelry:'gem', Other:'shopping-bag' };
+    var catList = Object.keys(catTotals).map(function(k){ return { name:k, val:catTotals[k] }; })
+      .sort(function(a,b){ return b.val - a.val; });
+    var catSum = catList.reduce(function(s,c){ return s + c.val; }, 0) || 1;
+
+    // ---- Most ordered products ----
+    var qtyById = {};
+    historyRows.forEach(function(r){ qtyById[r.id] = (qtyById[r.id] || 0) + r.qty; });
+    var topProducts = Object.keys(qtyById).map(function(id){
+      var p = LIFT.getProduct(id);
+      return p ? { id:id, name:p.name, img:p.img, category:p.category, price:p.price, qty:qtyById[id] } : null;
+    }).filter(Boolean).sort(function(a,b){ return b.qty - a.qty; }).slice(0, 4);
+
+    // ---- Order status donut ----
+    var statusCounts = { Processing:0, Shipped:0, Delivered:0, Cancelled:0 };
+    orders.forEach(function(o){ statusCounts[LIFT.orders.status(o)]++; });
+    var statusColors = { Processing:'#E8A93D', Shipped:'#3E7CB1', Delivered:'#2E7D4F', Cancelled:'#C1443A' };
+    var totalOrders = orders.length || 1;
+    var gradientStops = [];
+    var acc = 0;
+    ['Processing','Shipped','Delivered','Cancelled'].forEach(function(s){
+      var pct = statusCounts[s] / totalOrders * 100;
+      if(pct > 0){
+        gradientStops.push(statusColors[s] + ' ' + acc + '% ' + (acc+pct) + '%');
+        acc += pct;
+      }
+    });
+    var donutStyle = gradientStops.length
+      ? 'background:conic-gradient(' + gradientStops.join(',') + ');'
+      : 'background:var(--lh-paper-soft);';
+
+    // ---- Render ----
+    host.innerHTML =
+      '<div class="dash-wrap">' +
+
+        '<div class="rail">' +
+          '<div class="rail-head"><h3 id="railTitle">Purchase History</h3><span id="railCount">' + totalItemsBought + '</span></div>' +
+          '<div class="rail-tabs">' +
+            '<button type="button" class="rail-tab active" data-tab="purchases">Purchases</button>' +
+            '<button type="button" class="rail-tab" data-tab="followers">Followers</button>' +
+            '<button type="button" class="rail-tab" data-tab="following">Following</button>' +
+          '</div>' +
+          '<div class="rail-list" id="railList"></div>' +
+        '</div>' +
+
+        '<div class="dash-main">' +
+
+          '<div class="banner-card">' +
+            '<div class="banner-photo" id="bannerPhoto" title="Click to change cover photo">' +
+              '<img src="' + (user.banner || 'https://images.unsplash.com/photo-1517705008128-361805f42e86?w=1400&q=80') + '" alt="Profile banner">' +
+              '<div class="photo-edit-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 4-4L18.5 5.5a2.1 2.1 0 0 1 3 3L10 20l-4 1Z"/></svg>Change cover photo</div>' +
+            '</div>' +
+            '<div class="banner-avatar-row">' +
+              '<div class="avatar-edit-wrap" id="avatarEditWrap" title="Click to change profile photo">' +
+                '<div class="banner-avatar">' + (user.avatar ? '<img src="' + user.avatar + '" alt="">' : LIFT.user.initial(user)) + '</div>' +
+                '<div class="avatar-edit-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 4-4L18.5 5.5a2.1 2.1 0 0 1 3 3L10 20l-4 1Z"/></svg></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="banner-info-row">' +
+              '<div class="banner-id">' +
+                '<h2>' + f(LIFT.user.label(user)) + '</h2>' +
+                '<div class="role">' + f(user.role || 'LIFT Shopper') + '</div>' +
+                '<div class="joined">' + (user.joinedLabel ? 'Joined ' + f(user.joinedLabel) : f(user.city ? user.city + ', Cameroon' : 'Cameroon')) + '</div>' +
+              '</div>' +
+              '<div class="banner-actions">' +
+                '<div>' +
+                  '<div class="social-label">Social Media</div>' +
+                  '<div class="social-mini">' +
+                    '<a href="#" data-toast="Facebook coming soon" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-1.7 0-3 1.3-3 3v2H9v3h2v7h3v-7h3l1-3h-4v-2c0-.6.4-1 1-1Z"/></svg></a>' +
+                    '<a href="#" data-toast="Instagram coming soon" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm5 5.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4Zm0 2a2.7 2.7 0 1 1 0 5.4 2.7 2.7 0 0 1 0-5.4ZM17.6 6a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2Z"/></svg></a>' +
+                    '<a href="#" data-toast="X / Twitter coming soon" aria-label="Twitter"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 5.9c-.7.3-1.5.6-2.3.7.8-.5 1.5-1.3 1.8-2.2-.8.5-1.7.8-2.6 1a4.1 4.1 0 0 0-7 3.7A11.6 11.6 0 0 1 3.4 4.7a4.1 4.1 0 0 0 1.3 5.5c-.6 0-1.3-.2-1.8-.5v.1c0 2 1.4 3.6 3.3 4a4 4 0 0 1-1.8.1 4.1 4.1 0 0 0 3.8 2.9A8.3 8.3 0 0 1 2 18.6a11.6 11.6 0 0 0 6.3 1.8c7.5 0 11.7-6.3 11.7-11.7v-.5c.8-.6 1.5-1.3 2-2.3Z"/></svg></a>' +
+                  '</div>' +
+                '</div>' +
+                '<a href="settings.html" class="edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit Profile</a>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="panel" id="profileFeedPanel"><h3>Feed</h3><div id="profileFeedHost"></div></div>' +
+
+          '<div class="split-row">' +
+            '<div class="panel">' +
+              '<h3>Shopping By Category</h3>' +
+              (catList.length ? catList.map(function(c){
+                var pct = Math.round(c.val / catSum * 100);
+                return '<div class="skill-row">' +
+                  '<div class="skill-icon" style="background:' + catColors[c.name] + '22;">' + LIFT.icon(catIcons[c.name]||'shopping-bag') + '</div>' +
+                  '<div class="skill-bar-track"><div class="skill-bar-fill" style="width:' + pct + '%;background:' + (catColors[c.name]||'var(--lh-text-soft)') + ';"></div></div>' +
+                  '<div class="skill-pct">' + pct + '%</div>' +
+                '</div>';
+              }).join('') : '<div style="color:var(--lh-text-soft);font-size:.85rem;">Shop a few items and your category breakdown will show up here.</div>') +
+            '</div>' +
+
+            '<div class="panel">' +
+              '<h3>My Activity</h3>' +
+              '<div class="stats-grid">' +
+                '<div class="stat-tile"><div class="ic">' + LIFT.icon('package') + '</div><div><strong>' + orders.length + '</strong><span>Orders</span></div></div>' +
+                '<div class="stat-tile"><div class="ic">' + LIFT.icon('circle-check-big') + '</div><div><strong>' + delivered + '</strong><span>Delivered</span></div></div>' +
+                '<div class="stat-tile"><div class="ic">' + LIFT.icon('hourglass') + '</div><div><strong>' + processing + '</strong><span>Processing</span></div></div>' +
+                '<div class="stat-tile"><div class="ic">' + LIFT.icon('shopping-cart') + '</div><div><strong>' + cartTotals.count + '</strong><span>In Cart</span></div></div>' +
+                '<div class="stat-tile"><div class="ic">' + LIFT.icon('dollar-sign') + '</div><div><strong style="font-size:.92rem;">' + LIFT.fcfa(totalSpent) + '</strong><span>Total Spent</span></div></div>' +
+                '<div class="stat-tile"><div class="ic">' + LIFT.icon('tag') + '</div><div><strong style="font-size:.92rem;">' + LIFT.fcfa(totalSaved) + '</strong><span>Saved</span></div></div>' +
+                '<a class="stat-tile" href="people.html" style="text-decoration:none;color:inherit;"><div class="ic">' + LIFT.icon('users') + '</div><div><strong>' + followersCount + '</strong><span>Followers</span></div></a>' +
+                '<a class="stat-tile" href="people.html" style="text-decoration:none;color:inherit;"><div class="ic">' + LIFT.icon('plus') + '</div><div><strong>' + followingCount + '</strong><span>Following</span></div></a>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="split-row narrow">' +
+            '<div class="panel">' +
+              '<h3>Most Ordered Products</h3>' +
+              (topProducts.length ?
+                '<table class="top-table"><thead><tr><th>Rank</th><th>Product</th><th>Category</th><th>Price</th></tr></thead><tbody>' +
+                topProducts.map(function(p, i){
+                  return '<tr><td><span class="rank-chip' + (i===0?' gold':'') + '">' + (i+1) + '</span></td>' +
+                    '<td><div class="prod-cell"><img src="' + p.img + '" alt="' + f(p.name) + '"><span>' + f(p.name) + '</span></div></td>' +
+                    '<td>' + f(p.category) + '</td>' +
+                    '<td class="price-cell">' + LIFT.fcfa(p.price) + '</td></tr>';
+                }).join('') + '</tbody></table>'
+                : '<div style="color:var(--lh-text-soft);font-size:.85rem;">Your most-ordered products will show up here after your first order.</div>') +
+            '</div>' +
+
+            '<div class="panel">' +
+              '<h3>Order Status</h3>' +
+              '<div class="donut-wrap">' +
+                '<div class="donut" style="' + donutStyle + '"><div class="donut-hole"><strong>' + orders.length + '</strong><span>ORDERS</span></div></div>' +
+                '<div class="legend">' +
+                  ['Processing','Shipped','Delivered','Cancelled'].map(function(s){
+                    return '<div class="legend-row"><span class="legend-dot" style="background:' + statusColors[s] + ';"></span><span>' + s + '</span><strong>' + statusCounts[s] + '</strong></div>';
+                  }).join('') +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+
+        '</div>' +
+      '</div>' +
+      '<input type="file" accept="image/*" id="avatarFileInput" style="display:none;">' +
+      '<input type="file" accept="image/*" id="bannerFileInput" style="display:none;">';
+
+    // ---- Avatar / banner upload ----
+    var avatarInput = document.getElementById('avatarFileInput');
+    var bannerInput = document.getElementById('bannerFileInput');
+
+    document.getElementById('avatarEditWrap').addEventListener('click', function(){
+      avatarInput.click();
+    });
+    document.getElementById('bannerPhoto').addEventListener('click', function(){
+      bannerInput.click();
+    });
+    avatarInput.addEventListener('change', function(){
+      var file = this.files && this.files[0];
+      if(!file) return;
+      LIFT.user.readImageFile(file, 400, function(dataUrl){
+        if(!dataUrl){ LIFT.toast('Please choose an image file'); return; }
+        LIFT.user.setAvatar(dataUrl);
+        user = LIFT.user.get();
+        LIFT.toast('Profile photo updated');
+        renderProfile();
+      });
+    });
+    bannerInput.addEventListener('change', function(){
+      var file = this.files && this.files[0];
+      if(!file) return;
+      LIFT.user.readImageFile(file, 1400, function(dataUrl){
+        if(!dataUrl){ LIFT.toast('Please choose an image file'); return; }
+        LIFT.user.setBanner(dataUrl);
+        user = LIFT.user.get();
+        LIFT.toast('Cover photo updated');
+        renderProfile();
+      });
+    });
+
+    renderProfileFeed();
+
+    // ---- Rail: Purchases / Following tabs ----
+    function renderPurchasesTab(){
+      document.getElementById('railTitle').textContent = 'Purchase History';
+      document.getElementById('railCount').textContent = totalItemsBought;
+      document.getElementById('railList').innerHTML = historyRows.length
+        ? historyRows.map(function(r){
+            return '<a class="rail-row" href="orders.html" style="text-decoration:none;color:inherit;">' +
+              '<div class="rail-thumb"><img src="' + r.img + '" alt="' + f(r.name) + '"></div>' +
+              '<div class="rail-name">' + f(r.name) + '</div>' +
+              '<div class="rail-qty">×' + r.qty + '</div>' +
+            '</a>';
+          }).join('')
+        : '<div class="rail-empty">No purchases yet  start shopping to fill this list.</div>';
+    }
+
+    function renderFollowersTab(){
+      var list = LIFT.social.followersList();
+      document.getElementById('railTitle').textContent = 'Followers';
+      document.getElementById('railCount').textContent = list.length;
+      document.getElementById('railList').innerHTML = list.length
+        ? list.map(function(p){
+            return '<div class="rail-row" data-key="' + p.key + '">' +
+              '<div class="rail-thumb initial">' + (p.avatar ? '<img src="' + p.avatar + '" alt="">' : p.initial) + '</div>' +
+              '<div class="rail-name">' + f(p.name) + '</div>' +
+            '</div>';
+          }).join('')
+        : '<div class="rail-empty">No followers yet  share your feed posts to grow your audience.</div>';
+    }
+
+    function renderFollowingTab(){
+      var list = LIFT.social.followingList();
+      document.getElementById('railTitle').textContent = 'Following';
+      document.getElementById('railCount').textContent = list.length;
+      document.getElementById('railList').innerHTML = list.length
+        ? list.map(function(p){
+            return '<div class="rail-row" data-key="' + p.key + '">' +
+              '<div class="rail-thumb initial">' + (p.avatar ? '<img src="' + p.avatar + '" alt="">' : p.initial) + '</div>' +
+              '<div class="rail-name">' + f(p.name) + '</div>' +
+              '<button type="button" class="rail-unfollow">Unfollow</button>' +
+            '</div>';
+          }).join('')
+        : '<div class="rail-empty">Not following anyone yet  <a href="people.html">find people</a> to follow.</div>';
+    }
+
+    document.querySelectorAll('.rail-tab').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('.rail-tab').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        if(btn.dataset.tab === 'purchases') renderPurchasesTab();
+        else if(btn.dataset.tab === 'followers') renderFollowersTab();
+        else renderFollowingTab();
+      });
+    });
+
+    document.getElementById('railList').addEventListener('click', function(e){
+      var btn = e.target.closest('.rail-unfollow');
+      if(!btn) return;
+      var key = btn.closest('.rail-row').dataset.key;
+      LIFT.social.unfollow(key);
+      LIFT.toast('Unfollowed');
+      renderFollowingTab();
+    });
+
+    renderPurchasesTab();
+  }
+
+  // ---- Embedded Feed (same composer + timeline as feed.html) ----
+  var profilePendingImg = null;
+
+  function renderProfileFeed(){
+    var feedHost = document.getElementById('profileFeedHost');
+    if(!feedHost) return;
+    var params = new URLSearchParams(location.search);
+    var initialType = params.get('type') === 'product' ? 'product'
+      : params.get('type') === 'purchase' ? 'purchase' : 'announcement';
+    var initialProductId = params.get('productId') || '';
+    feedHost.innerHTML = profileComposerTemplate(initialType, initialProductId) + '<div id="profilePostsList"></div>';
+    wireProfileComposer(initialType);
+    renderProfilePosts();
+    if(params.get('type')){
+      setTimeout(function(){
+        document.getElementById('profileFeedPanel').scrollIntoView({behavior:'smooth', block:'start'});
+      }, 200);
+    }
+  }
+
+  function profileComposerTemplate(initialType, initialProductId){
+    initialType = initialType || 'announcement';
+    initialProductId = initialProductId || '';
+    var purchasedIds = {};
+    LIFT.orders.list().forEach(function(o){ o.items.forEach(function(l){ purchasedIds[l.id] = true; }); });
+    var purchasedProducts = Object.keys(purchasedIds).map(LIFT.getProduct).filter(Boolean);
+
+    return (
+      '<div class="composer">' +
+        '<div class="composer-head">' +
+          '<div class="composer-avatar">' + (user.avatar ? '<img src="' + user.avatar + '" alt="">' : LIFT.user.initial(user)) + '</div>' +
+          '<div class="composer-name">' + LIFT.escapeHTML(LIFT.user.label(user)) + '</div>' +
+        '</div>' +
+        '<textarea id="profilePostText" placeholder="Share an announcement, publicize a product you\'re selling, or show off a recent purchase…"></textarea>' +
+        '<div class="type-tabs">' +
+          '<button type="button" class="type-tab' + (initialType==='announcement'?' active':'') + '" data-type="announcement">' + LIFT.icon('megaphone') + ' Announcement</button>' +
+          '<button type="button" class="type-tab' + (initialType==='product'?' active':'') + '" data-type="product">' + LIFT.icon('shopping-bag') + ' Publicize a product</button>' +
+          '<button type="button" class="type-tab' + (initialType==='purchase'?' active':'') + '" data-type="purchase">' + LIFT.icon('circle-check-big') + ' Publicize a purchase</button>' +
+        '</div>' +
+        '<div class="composer-extra" id="profileProductPicker" style="display:' + (initialType==='product'?'block':'none') + ';">' +
+          '<select id="profileProductSelect">' +
+            '<option value="">Choose a product to feature…</option>' +
+            LIFT.CATALOG.map(function(p){
+              return '<option value="' + p.id + '"' + (p.id===initialProductId?' selected':'') + '>' + LIFT.escapeHTML(p.name) + ' — ' + LIFT.fcfa(p.price) + '</option>';
+            }).join('') +
+          '</select>' +
+        '</div>' +
+        '<div class="composer-extra" id="profilePurchasePicker" style="display:' + (initialType==='purchase'?'block':'none') + ';">' +
+          (purchasedProducts.length
+            ? '<select id="profilePurchaseSelect">' +
+                '<option value="">Choose a purchase to publicize…</option>' +
+                purchasedProducts.map(function(p){
+                  return '<option value="' + p.id + '"' + (p.id===initialProductId?' selected':'') + '>' + LIFT.escapeHTML(p.name) + '</option>';
+                }).join('') +
+              '</select>'
+            : '<div style="color:var(--lh-text-soft);font-size:.85rem;">You haven\'t purchased anything yet  <a href="products.html" style="color:var(--lh-gold-deep);font-weight:700;">shop the catalog</a> first.</div>') +
+        '</div>' +
+        '<div class="composer-row">' +
+          '<div class="composer-attach">' +
+            '<button type="button" class="attach-btn" id="profileAttachBtn">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>' +
+              'Photo' +
+            '</button>' +
+            '<input type="file" accept="image/*" id="profilePostImgInput" style="display:none;">' +
+            '<div id="profileAttachPreviewWrap"></div>' +
+          '</div>' +
+          '<button type="button" class="post-submit" id="profilePostSubmitBtn">Post</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function wireProfileComposer(initialType){
+    var textEl = document.getElementById('profilePostText');
+    var tabs = document.querySelectorAll('#profileFeedHost .type-tab');
+    var productPicker = document.getElementById('profileProductPicker');
+    var purchasePicker = document.getElementById('profilePurchasePicker');
+    var attachBtn = document.getElementById('profileAttachBtn');
+    var imgInput = document.getElementById('profilePostImgInput');
+    var previewWrap = document.getElementById('profileAttachPreviewWrap');
+    var activeType = initialType || 'announcement';
+
+    tabs.forEach(function(tab){
+      tab.addEventListener('click', function(){
+        tabs.forEach(function(t){ t.classList.remove('active'); });
+        tab.classList.add('active');
+        activeType = tab.dataset.type;
+        productPicker.style.display = activeType === 'product' ? 'block' : 'none';
+        purchasePicker.style.display = activeType === 'purchase' ? 'block' : 'none';
+      });
+    });
+
+    attachBtn.addEventListener('click', function(){ imgInput.click(); });
+    imgInput.addEventListener('change', function(){
+      var file = this.files && this.files[0];
+      if(!file) return;
+      LIFT.user.readImageFile(file, 1000, function(dataUrl){
+        if(!dataUrl){ LIFT.toast('Please choose an image file'); return; }
+        profilePendingImg = dataUrl;
+        previewWrap.innerHTML = '<div class="attach-preview"><img src="' + dataUrl + '" alt=""><button type="button" id="profileClearAttach">&times;</button></div>';
+        document.getElementById('profileClearAttach').addEventListener('click', function(){
+          profilePendingImg = null; previewWrap.innerHTML = ''; imgInput.value = '';
+        });
+      });
+    });
+
+    document.getElementById('profilePostSubmitBtn').addEventListener('click', function(){
+      var text = textEl.value.trim();
+      var productId = null;
+      if(activeType === 'product'){
+        productId = document.getElementById('profileProductSelect').value;
+        if(!productId){ LIFT.toast('Choose a product to publicize'); return; }
+        if(!text) text = 'Check out this product I\'m featuring!';
+      }
+      if(activeType === 'purchase'){
+        var sel = document.getElementById('profilePurchaseSelect');
+        productId = sel ? sel.value : '';
+        if(!productId){ LIFT.toast('Choose a purchase to publicize'); return; }
+        if(!text) text = 'Just picked this up on LIFT  loving it!';
+      }
+      if(activeType === 'announcement' && !text && !profilePendingImg){
+        LIFT.toast('Write something to post'); return;
+      }
+
+      LIFT.feed.create({ type: activeType, text: text, productId: productId, img: profilePendingImg });
+      LIFT.toast('Posted to the Feed');
+      profilePendingImg = null;
+      renderProfileFeed();
+    });
+  }
+
+  function profileTimeAgo(ts){
+    var s = Math.floor((Date.now() - ts) / 1000);
+    if(s < 60) return 'just now';
+    var m = Math.floor(s / 60); if(m < 60) return m + 'm ago';
+    var h = Math.floor(m / 60); if(h < 24) return h + 'h ago';
+    var d = Math.floor(h / 24); return d + 'd ago';
+  }
+
+  function renderProfilePosts(){
+    var listHost = document.getElementById('profilePostsList');
+    var posts = LIFT.feed.list();
+
+    if(!posts.length){
+      listHost.innerHTML =
+        '<div class="lift-empty">' +
+          '<div class="lift-empty-icon">' + LIFT.icon('newspaper') + '</div>' +
+          '<h3>No posts yet</h3>' +
+          '<p>Be the first to share an announcement or publicize a product above.</p>' +
+        '</div>';
+      return;
+    }
+
+    listHost.innerHTML = posts.map(profilePostTemplate).join('');
+
+    listHost.querySelectorAll('.post-action.like-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!LIFT.requireLogin('Log in to like posts')) return;
+        LIFT.feed.toggleLike(btn.dataset.id);
+        renderProfilePosts();
+      });
+    });
+    listHost.querySelectorAll('.post-action.comment-toggle').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var box = listHost.querySelector('.comments[data-id="' + btn.dataset.id + '"]');
+        if(box) box.classList.toggle('open');
+      });
+    });
+    listHost.querySelectorAll('.post-action.share-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){ LIFT.toast('Post shared to your followers'); });
+    });
+    listHost.querySelectorAll('.comment-form').forEach(function(form){
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        if(!LIFT.requireLogin('Log in to comment')) return;
+        var input = form.querySelector('input');
+        var text = input.value.trim();
+        if(!text) return;
+        LIFT.feed.addComment(form.dataset.id, text);
+        input.value = '';
+        renderProfilePosts();
+      });
+    });
+    listHost.querySelectorAll('.ppc-add').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        LIFT.cart.add(btn.dataset.id, 1);
+        LIFT.toast(LIFT.getProduct(btn.dataset.id).name + ' added to cart');
+      });
+    });
+  }
+
+  function profilePostTemplate(p){
+    var f = LIFT.escapeHTML;
+    var liked = LIFT.feed.isLiked(p);
+    var product = p.productId ? LIFT.getProduct(p.productId) : null;
+    var badgeLabel = p.type === 'product' ? 'Product' : p.type === 'purchase' ? 'Purchase' : 'Announcement';
+
+    return (
+      '<div class="post-card">' +
+        '<div class="post-head">' +
+          '<div class="post-avatar">' + (p.authorAvatar ? '<img src="' + p.authorAvatar + '" alt="">' : f(p.authorInitial)) + '</div>' +
+          '<div>' +
+            '<div class="post-name-row">' +
+              '<span class="post-name">' + f(p.authorName) + '</span>' +
+              '<span class="post-badge ' + p.type + '">' + badgeLabel + '</span>' +
+            '</div>' +
+            '<span class="post-time">' + profileTimeAgo(p.createdAt) + '</span>' +
+          '</div>' +
+        '</div>' +
+        (p.text ? '<div class="post-text">' + f(p.text) + '</div>' : '') +
+        (p.img ? '<div class="post-img"><img src="' + p.img + '" alt=""></div>' : '') +
+        (product
+          ? '<a class="post-product-card" href="products.html?q=' + encodeURIComponent(product.name) + '">' +
+              '<img src="' + product.img + '" alt="' + f(product.name) + '">' +
+              '<div><div class="ppc-name">' + f(product.name) + '</div><div class="ppc-price">' + LIFT.fcfa(product.price) + '</div></div>' +
+              '<button type="button" class="ppc-add" data-id="' + product.id + '">Add to cart</button>' +
+            '</a>'
+          : '') +
+        '<div class="post-actions">' +
+          '<button type="button" class="post-action like-btn' + (liked ? ' liked' : '') + '" data-id="' + p.id + '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>' +
+            (p.likes.length || '') +
+          '</button>' +
+          '<button type="button" class="post-action comment-toggle" data-id="' + p.id + '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
+            (p.comments.length || '') +
+          '</button>' +
+          '<button type="button" class="post-action share-btn">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>' +
+            'Share' +
+          '</button>' +
+        '</div>' +
+        '<div class="comments" data-id="' + p.id + '">' +
+          p.comments.map(function(c){
+            return '<div class="comment-row"><strong>' + f(c.authorName) + '</strong>' + f(c.text) + '</div>';
+          }).join('') +
+          '<form class="comment-form" data-id="' + p.id + '">' +
+            '<input type="text" placeholder="Write a comment…">' +
+            '<button type="submit">Send</button>' +
+          '</form>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+</script>
+
+</body>
+</html>

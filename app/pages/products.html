@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT  Explore Our Products</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/product.css">
+<link rel="stylesheet" href="../css/lift-shop.css">
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<div id="searchBanner" class="search-banner" style="display:none;">
+  <span id="searchBannerText"></span>
+  <button id="searchBannerClear" type="button">Clear</button>
+</div>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">New arrivals every week</div>
+    <h1>Explore Our Products</h1>
+    <p class="sub">Footwear, bags, tech, and fine jewelry  handpicked for quality and priced fairly, all in one place.</p>
+    <div class="underline"></div>
+  </div>
+</section>
+
+<div class="section-heading">
+  <h2>All Products</h2>
+  <span class="count" id="productsCount"></span>
+</div>
+
+<div class="cat-chips" id="catChips"></div>
+<div class="cat-chips" id="filterPills"></div>
+
+<section class="grid-section">
+  <div class="grid" id="productsGrid"></div>
+
+  <div class="view-more-wrap" id="viewMoreWrap">
+    <button class="view-more" id="toggleMore">View more</button>
+  </div>
+</section>
+
+<div class="newsletter">
+  <div class="eyebrow">Join the list</div>
+  <h2>Stay in the loop</h2>
+  <p>Get new drops and restock alerts before anyone else.</p>
+  <form class="signup" id="signup-form" novalidate>
+    <div class="field">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" placeholder="Your name">
+      <div class="error-msg" id="name-error"></div>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com">
+      <div class="error-msg" id="email-error"></div>
+    </div>
+    <button type="submit">Subscribe</button>
+  </form>
+  <div class="form-status" id="form-status"></div>
+</div>
+
+<div id="lift-footer"></div>
+
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('products');
+  LIFT.mountFooter();
+
+  function showToast(msg){ LIFT.toast(msg); }
+
+  // ---- Dynamic product grid, driven entirely by the shared LIFT.CATALOG ----
+  // (This keeps every page search, marketplace category tiles, this grid —
+  // permanently in sync: add a product once in lift-shop.js and it shows up everywhere.)
+  const PAGE_SIZE = 8;
+  const params = new URLSearchParams(location.search);
+  const initialQ = (params.get('q') || '').trim();
+  const initialCategory = (params.get('category') || '').trim();
+  const initialLocation = (params.get('location') || '').trim();
+  const initialSize = (params.get('size') || '').trim();
+  const initialMinPrice = parseInt(params.get('minPrice'), 10);
+  const initialMaxPrice = parseInt(params.get('maxPrice'), 10);
+
+  const categories = ['All'].concat(
+    Array.from(new Set(LIFT.CATALOG.map(p => p.category)))
+  );
+  let activeCategory = categories.find(c => c.toLowerCase() === initialCategory.toLowerCase()) || 'All';
+  let query = initialQ;
+  let activeLocation = LIFT.LOCATIONS.find(l => l.toLowerCase() === initialLocation.toLowerCase()) || '';
+  let activeSize = initialSize || '';
+  let minPrice = Number.isFinite(initialMinPrice) ? initialMinPrice : null;
+  let maxPrice = Number.isFinite(initialMaxPrice) ? initialMaxPrice : null;
+  let visibleCount = PAGE_SIZE;
+
+  const chipsHost = document.getElementById('catChips');
+  const pillsHost = document.getElementById('filterPills');
+  let currentPills = [];
+  const gridHost = document.getElementById('productsGrid');
+  const countEl = document.getElementById('productsCount');
+  const viewMoreWrap = document.getElementById('viewMoreWrap');
+  const toggleMoreBtn = document.getElementById('toggleMore');
+  const banner = document.getElementById('searchBanner');
+  const bannerText = document.getElementById('searchBannerText');
+  const clearBtn = document.getElementById('searchBannerClear');
+
+  function starString(rating){
+    const full = Math.round(rating);
+    return '★★★★★'.slice(0, full) + '☆☆☆☆☆'.slice(full);
+  }
+
+  function matchesFilter(p){
+    const nameHit = query ? p.name.toLowerCase().includes(query.toLowerCase()) : true;
+    const catHit = activeCategory === 'All' ? true : p.category === activeCategory;
+    const locHit = activeLocation ? p.location === activeLocation : true;
+    const sizeHit = activeSize ? (p.sizes && p.sizes.includes(activeSize)) : true;
+    const minHit = minPrice != null ? p.price >= minPrice : true;
+    const maxHit = maxPrice != null ? p.price <= maxPrice : true;
+    return nameHit && catHit && locHit && sizeHit && minHit && maxHit;
+  }
+
+  function activeFilterPills(){
+    const pills = [];
+    if(activeLocation) pills.push({ label: LIFT.icon('map-pin') + ' ' + activeLocation, clear: () => { activeLocation = ''; } });
+    if(activeSize) pills.push({ label: 'Size ' + activeSize, clear: () => { activeSize = ''; } });
+    if(minPrice != null || maxPrice != null){
+      const label = minPrice != null && maxPrice != null
+        ? LIFT.fcfa(minPrice) + ' – ' + LIFT.fcfa(maxPrice)
+        : minPrice != null ? 'Above ' + LIFT.fcfa(minPrice) : 'Under ' + LIFT.fcfa(maxPrice);
+      pills.push({ label, clear: () => { minPrice = null; maxPrice = null; } });
+    }
+    return pills;
+  }
+
+  function renderChips(){
+    chipsHost.innerHTML = categories.map(c =>
+      `<button type="button" class="cat-chip${c === activeCategory ? ' active' : ''}" data-cat="${LIFT.escapeHTML(c)}">${LIFT.escapeHTML(c)}</button>`
+    ).join('');
+  }
+
+
+  function cardTemplate(p){
+    return (
+      `<div class="card in-view" data-id="${p.id}">
+        <div class="card-media">
+          <span class="tag-label">${LIFT.escapeHTML(p.category)}</span>
+          <button class="publicize-btn" data-id="${p.id}" title="Post this product to the Feed for publicity" aria-label="Post to Feed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-8-8 18-2-8-8-2Z"/></svg>
+          </button>
+          <img src="${p.img}" alt="${LIFT.escapeHTML(p.name)}" loading="lazy">
+          <span class="price-badge">${p.price}F</span>
+        </div>
+        <div class="card-body">
+          <h3>${LIFT.escapeHTML(p.name)}</h3>
+          <div class="rating"><span class="stars">${starString(p.rating)}</span> ${p.rating}</div>
+          <div class="price-row"><span>Price</span><span class="amount">${LIFT.fcfa(p.price)}</span></div>
+          <button class="add-btn" data-id="${p.id}">Add To Cart</button>
+        </div>
+      </div>`
+    );
+  }
+
+  function render(){
+    const filtered = LIFT.CATALOG.filter(matchesFilter);
+    const shown = filtered.slice(0, visibleCount);
+
+    gridHost.innerHTML = shown.length
+      ? shown.map(cardTemplate).join('')
+      : '<div class="lift-empty" style="grid-column:1/-1;"><div class="lift-empty-icon">' + LIFT.icon('search') + '</div><h3>No products match your filters</h3><p>Try a different category or search term.</p></div>';
+
+    countEl.textContent = filtered.length + (filtered.length === 1 ? ' piece' : ' pieces');
+    viewMoreWrap.style.display = filtered.length > visibleCount ? 'block' : 'none';
+
+    const pills = activeFilterPills();
+    currentPills = pills;
+    pillsHost.innerHTML = pills.map((p, i) =>
+      `<span class="filter-pill">${LIFT.escapeHTML(p.label)}<button type="button" data-pill="${i}" aria-label="Remove filter">&times;</button></span>`
+    ).join('');
+
+    const hasExtraFilters = pills.length > 0;
+    if(query || activeCategory !== 'All' || hasExtraFilters){
+      banner.style.display = 'flex';
+      const label = query ? `“${query}”` : activeCategory !== 'All' ? activeCategory : 'your filters';
+      bannerText.textContent = filtered.length
+        ? `Showing ${filtered.length} result${filtered.length===1?'':'s'} for ${label}`
+        : `No products match ${label}`;
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  chipsHost.addEventListener('click', (e) => {
+    const btn = e.target.closest('.cat-chip');
+    if(!btn) return;
+    activeCategory = btn.dataset.cat;
+    query = '';
+    visibleCount = PAGE_SIZE;
+    renderChips();
+    render();
+  });
+
+  pillsHost.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-pill]');
+    if(!btn) return;
+    const pill = currentPills[Number(btn.dataset.pill)];
+    if(pill){ pill.clear(); visibleCount = PAGE_SIZE; render(); }
+  });
+
+  toggleMoreBtn.addEventListener('click', () => {
+    visibleCount += PAGE_SIZE;
+    render();
+  });
+
+  clearBtn && clearBtn.addEventListener('click', () => {
+    activeCategory = 'All';
+    query = '';
+    activeLocation = '';
+    activeSize = '';
+    minPrice = null;
+    maxPrice = null;
+    visibleCount = PAGE_SIZE;
+    renderChips();
+    render();
+  });
+
+  gridHost.addEventListener('click', (e) => {
+    const addBtn = e.target.closest('.add-btn');
+    if(addBtn){
+      const p = LIFT.getProduct(addBtn.dataset.id);
+      LIFT.cart.add(addBtn.dataset.id, 1);
+      showToast(p.name + ' added to cart');
+      return;
+    }
+    const pubBtn = e.target.closest('.publicize-btn');
+    if(pubBtn){
+      if(!LIFT.requireLogin('Log in to post a product to the Feed')) return;
+      window.location.href = 'profile.html?type=product&productId=' + encodeURIComponent(pubBtn.dataset.id) + '#profileFeedPanel';
+    }
+  });
+
+  renderChips();
+  render();
+
+  // ---- Newsletter form validation ----
+  const form = document.getElementById('signup-form');
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const nameError = document.getElementById('name-error');
+  const emailError = document.getElementById('email-error');
+  const formStatus = document.getElementById('form-status');
+
+  function isValidEmail(value){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  function clearFieldError(input, errorEl){
+    input.classList.remove('error');
+    errorEl.textContent = '';
+  }
+
+  function setFieldError(input, errorEl, message){
+    input.classList.add('error');
+    errorEl.textContent = message;
+  }
+
+  [nameInput, emailInput].forEach(input => {
+    input.addEventListener('input', () => {
+      const errorEl = input === nameInput ? nameError : emailError;
+      clearFieldError(input, errorEl);
+      formStatus.textContent = '';
+      formStatus.className = 'form-status';
+    });
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    let valid = true;
+
+    if(nameInput.value.trim().length < 2){
+      setFieldError(nameInput, nameError, 'Please enter your name.');
+      valid = false;
+    } else {
+      clearFieldError(nameInput, nameError);
+    }
+
+    if(!isValidEmail(emailInput.value.trim())){
+      setFieldError(emailInput, emailError, 'Please enter a valid email address.');
+      valid = false;
+    } else {
+      clearFieldError(emailInput, emailError);
+    }
+
+    if(valid){
+      formStatus.textContent = "You're subscribed, " + nameInput.value.trim().split(' ')[0] + '! Look out for our next drop.';
+      formStatus.className = 'form-status ok';
+      form.reset();
+    } else {
+      formStatus.textContent = 'Please fix the errors above.';
+      formStatus.className = 'form-status bad';
+    }
+  });
+</script>
+
+</body>
+</html>

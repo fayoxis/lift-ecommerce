@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT  Find People</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/lift-shop.css">
+<style>
+  .people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;}
+  .people-card{
+    background:var(--lh-surface);border:1px solid var(--lh-line);border-radius:16px;padding:22px 20px;
+    display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;
+  }
+  .people-avatar{
+    width:66px;height:66px;border-radius:50%;background:linear-gradient(155deg,var(--lh-gold),var(--lh-gold-deep));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;
+    font-family:var(--lh-font-display);margin-bottom:6px;
+  }
+  .people-card h4{font-size:.98rem;font-weight:700;}
+  .people-card .role{font-size:.78rem;color:var(--lh-text-soft);margin-bottom:12px;}
+  .people-actions{display:flex;gap:8px;width:100%;}
+  .people-actions .lift-btn{flex:1;padding:9px 10px;font-size:.78rem;}
+  .info-banner{
+    background:var(--lh-paper-soft);border-radius:12px;padding:16px 20px;font-size:.85rem;color:var(--lh-text-soft);
+    margin-bottom:26px;display:flex;gap:12px;align-items:flex-start;
+  }
+  .info-banner svg{width:18px;height:18px;flex-shrink:0;color:var(--lh-gold-deep);margin-top:1px;}
+</style>
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<div class="lift-page">
+  <a href="profile.html" class="lift-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to profile
+  </a>
+  <h1 class="lift-page-title">Find People</h1>
+
+  <div id="peopleContent"></div>
+</div>
+
+<div id="lift-footer"></div>
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('products');
+  LIFT.mountFooter();
+
+  var host = document.getElementById('peopleContent');
+
+  function render(){
+    if(!LIFT.user.get()){
+      host.innerHTML =
+        '<div class="lift-empty">' +
+          '<div class="lift-empty-icon">' + LIFT.icon('lock') + '</div>' +
+          '<h3>Log in to find people</h3>' +
+          '<p>Following other LIFT shoppers is only available once you\'re signed in.</p>' +
+          '<a href="' + LIFT.loginUrl('#login') + '" class="lift-btn lift-btn-primary">Log In</a>' +
+        '</div>';
+      return;
+    }
+
+    var people = LIFT.social.listOtherUsers();
+
+    var banner =
+      '<div class="info-banner">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
+        '<div>This directory lists LIFT accounts created on this device. Create another account (in a private window) to try following, messaging, and the profile follower stats.</div>' +
+      '</div>';
+
+    if(!people.length){
+      host.innerHTML = banner +
+        '<div class="lift-empty">' +
+          '<div class="lift-empty-icon">' + LIFT.icon('users-round') + '</div>' +
+          '<h3>No other shoppers yet</h3>' +
+          '<p>Once other people sign up on LIFT, you\'ll be able to follow and message them here.</p>' +
+        '</div>';
+      return;
+    }
+
+    host.innerHTML = banner +
+      '<div class="people-grid">' +
+      people.map(function(p){
+        var following = LIFT.social.isFollowing(p.key);
+        return (
+          '<div class="people-card" data-key="' + p.key + '">' +
+            '<div class="people-avatar">' + p.initial + '</div>' +
+            '<h4>' + LIFT.escapeHTML(p.name) + '</h4>' +
+            '<div class="role">' + LIFT.escapeHTML(p.role) + '</div>' +
+            '<div class="people-actions">' +
+              '<button type="button" class="lift-btn ' + (following ? 'lift-btn-outline' : 'lift-btn-primary') + ' follow-btn">' + (following ? 'Following' : 'Follow') + '</button>' +
+              '<a href="messages.html?to=' + encodeURIComponent(p.key) + '" class="lift-btn lift-btn-outline">Message</a>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('') +
+      '</div>';
+  }
+
+  host.addEventListener('click', function(e){
+    var btn = e.target.closest('.follow-btn');
+    if(!btn) return;
+    var card = btn.closest('.people-card');
+    var key = card.dataset.key;
+    if(LIFT.social.isFollowing(key)){
+      LIFT.social.unfollow(key);
+      LIFT.toast('Unfollowed');
+    } else {
+      LIFT.social.follow(key);
+      LIFT.toast('Now following ' + card.querySelector('h4').textContent);
+    }
+    render();
+  });
+
+  render();
+</script>
+
+</body>
+</html>

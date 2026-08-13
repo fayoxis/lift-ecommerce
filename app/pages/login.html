@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-commerce platform </title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+
+<div class="page">
+
+<div class="stage" id="stage">
+  <div class="launch">
+    <div class="grain"></div>
+
+    <div class="brand"><span class="dot"></span>  E-commerce platform</div>
+
+    <div class="orbit-wrap">
+      <svg class="orbit-svg" viewBox="0 0 340 340">
+        <defs>
+          <radialGradient id="coreGrad" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#C9B6FF"/>
+            <stop offset="55%" stop-color="#8A5CFF"/>
+            <stop offset="100%" stop-color="#5B2FE0"/>
+          </radialGradient>
+          <radialGradient id="coreGradSuccess" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#BFFCEF"/>
+            <stop offset="55%" stop-color="#2FE0C0"/>
+            <stop offset="100%" stop-color="#0FA98E"/>
+          </radialGradient>
+          <linearGradient id="dotGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E14CFF"/>
+            <stop offset="100%" stop-color="#8A5CFF"/>
+          </linearGradient>
+        </defs>
+
+        <circle class="ring r1" cx="170" cy="170" r="150"/>
+        <circle class="ring r2" cx="170" cy="170" r="112"/>
+        <line class="ring launch-trail" x1="170" y1="170" x2="170" y2="10" stroke-dasharray="4 6"/>
+
+        <circle class="core" cx="170" cy="170" r="30"/>
+
+        <g class="traveler" id="traveler">
+          <circle cx="170" cy="20" r="7"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="copy-block">
+      <p class="eyebrow" id="eyebrow">Step 01  Create account</p>
+      <h1 class="headline" id="headline">Your e-commerce journey<br><em>starts here.</em></h1>
+      <p class="sub" id="sub">Set up your profile, so you can make purchase at anytime and anywhere </p>
+
+      <div class="steps">
+        <div class="step-pip active" id="pip-1"><span class="n">1</span>Sign up</div>
+        <div class="step-pip" id="pip-2"><span class="n">2</span>Confirmed</div>
+        <div class="step-pip" id="pip-3"><span class="n">3</span>Sign in</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panels">
+
+    <!-- SIGN UP -->
+    <form class="panel active" id="panel-signup" novalidate>
+      <h1>Create your account</h1>
+      <p class="lede">A few details and you're on the list.</p>
+
+      <div class="two-col">
+        <div class="field" id="f-first">
+          <label for="first">First name</label>
+          <input id="first" type="text" placeholder="Fayole" autocomplete="given-name">
+          <div class="msg">Enter your first name</div>
+        </div>
+        <div class="field" id="f-last">
+          <label for="last">Last name</label>
+          <input id="last" type="text" placeholder="james" autocomplete="family-name">
+          <div class="msg">Enter your last name</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field" id="f-username">
+          <label for="username">Username</label>
+          <div class="prefix-input">
+            <span class="at">@</span>
+            <input id="username" type="text" placeholder="fayole.james" autocomplete="username">
+          </div>
+          <div class="msg">Choose a username (letters, numbers, dots)</div>
+        </div>
+        <div class="field" id="f-phone">
+          <label for="phone">Telephone</label>
+          <input id="phone" type="tel" inputmode="tel" placeholder="+237 6XX XXX XXX" autocomplete="tel" maxlength="24" minlength="13">
+          <div class="field-hint" id="phoneHint">Include the country code, e.g. +237 6XX XXX XXX</div>
+          <div class="msg" id="phoneMsg">Enter a valid phone number</div>
+        </div>
+      </div>
+
+      <div class="field" id="f-email">
+        <label for="email">Email address</label>
+        <input id="email" type="email" placeholder="you@school.edu" autocomplete="email">
+        <div class="msg">Enter a valid email address</div>
+      </div>
+
+      <div class="field" id="f-address">
+        <label for="address">Address</label>
+        <input id="address" type="text" placeholder="Street, neighborhood" autocomplete="street-address">
+        <div class="msg">Enter your address</div>
+      </div>
+
+      <div class="two-col">
+        <div class="field" id="f-city">
+          <label for="city">City</label>
+          <input id="city" type="text" placeholder="Yaoundé" autocomplete="address-level2">
+          <div class="msg">Enter your city</div>
+        </div>
+        <div class="field" id="f-country">
+          <label for="country">Country</label>
+          <select id="country" autocomplete="country" required>
+            <option value="" disabled selected hidden>Select country</option>
+            <option>Cameroon</option>
+            <option>Nigeria</option>
+            <option>Ghana</option>
+            <option>Kenya</option>
+            <option>South Africa</option>
+            <option>Senegal</option>
+            <option>Côte d'Ivoire</option>
+            <option>United States</option>
+            <option>United Kingdom</option>
+            <option>France</option>
+            <option>Other</option>
+          </select>
+          <div class="msg">Select your country</div>
+        </div>
+      </div>
+
+      <div class="field field-collapsible" id="f-country-other">
+        <label for="countryOther">Enter your country</label>
+        <input id="countryOther" type="text" placeholder="Type your country name" autocomplete="off">
+        <div class="msg">Enter your country name</div>
+      </div>
+
+      <div class="field" id="f-pass">
+        <label for="pass">Create password</label>
+        <div class="pw-input">
+          <input id="pass" type="password" placeholder="At least 8 characters" autocomplete="new-password" aria-describedby="pwReqs">
+          <button type="button" class="pw-toggle" data-target="pass" aria-label="Show password">
+            <svg class="ic-eye" viewBox="0 0 24 24"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="ic-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a3 3 0 004.24 4.24M9.9 5.1A10.9 10.9 0 0112 5c7 0 10.5 7 10.5 7a13.2 13.2 0 01-3.15 4.05M6.5 6.6C3.4 8.5 1.5 12 1.5 12a13.3 13.3 0 004.16 4.9"/></svg>
+          </button>
+        </div>
+
+        <div class="pw-meter">
+          <div class="pw-strength" id="pwStrength"><span></span><span></span><span></span><span></span></div>
+          <span class="pw-strength-label" id="pwStrengthLabel">&nbsp;</span>
+        </div>
+
+        <ul class="pw-reqs" id="pwReqs">
+          <li id="req-len"><i class="tick"></i>At least 8 characters</li>
+          <li id="req-case"><i class="tick"></i>Upper &amp; lowercase letters</li>
+          <li id="req-num"><i class="tick"></i>At least one number</li>
+          <li id="req-special"><i class="tick"></i>At least one symbol <span class="opt">(recommended)</span></li>
+        </ul>
+        <div class="msg">Meet the required password rules below</div>
+      </div>
+
+      <div class="field" id="f-confirm">
+        <label for="confirm">Confirm password</label>
+        <div class="pw-input">
+          <input id="confirm" type="password" placeholder="Re-enter password" autocomplete="new-password">
+          <button type="button" class="pw-toggle" data-target="confirm" aria-label="Show password">
+            <svg class="ic-eye" viewBox="0 0 24 24"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="ic-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a3 3 0 004.24 4.24M9.9 5.1A10.9 10.9 0 0112 5c7 0 10.5 7 10.5 7a13.2 13.2 0 01-3.15 4.05M6.5 6.6C3.4 8.5 1.5 12 1.5 12a13.3 13.3 0 004.16 4.9"/></svg>
+          </button>
+        </div>
+        <div class="match-hint" id="matchHint"></div>
+        <div class="msg">Passwords don't match</div>
+      </div>
+
+      <button type="submit" class="cta" id="btn-signup">
+        <span class="label">Create account</span>
+        <span class="spinner"><i></i></span>
+      </button>
+
+      <div class="oauth-divider"><span>or continue with</span></div>
+      <div class="oauth-row">
+        <button type="button" class="oauth-btn oauth-google" id="btn-google-signup">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.92l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.11C3.25 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54v-3.1H1.27a12 12 0 0 0 0 10.75l4-3.11z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.63l4 3.1C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
+          <span class="oauth-label">Google</span>
+        </button>
+        <button type="button" class="oauth-btn oauth-facebook" id="btn-facebook-signup">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M22 12.06C22 6.51 17.52 2 12 2S2 6.51 2 12.06C2 17.08 5.66 21.24 10.44 22v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.89h2.78l-.44 2.91h-2.34V22C18.34 21.24 22 17.08 22 12.06Z"/></svg>
+          <span class="oauth-label">Facebook</span>
+        </button>
+      </div>
+
+      <p class="switch-line">Already have an account? <a class="link" data-go="login">Log in</a></p>
+    </form>
+
+    <!-- LOGIN -->
+    <form class="panel" id="panel-login" novalidate>
+      <h1>Welcome back</h1>
+      <p class="lede">Log in to check your application status.</p>
+
+      <div class="field" id="f-login-email">
+        <label for="login-email">Username or email</label>
+        <input id="login-email" type="text" placeholder="you@school.edu or username" autocomplete="username">
+        <div class="msg" id="loginIdMsg">Enter your username or email address</div>
+      </div>
+
+      <div class="field" id="f-login-pass">
+        <label for="login-pass">Password</label>
+        <div class="pw-input">
+          <input id="login-pass" type="password" placeholder="Your password" autocomplete="current-password">
+          <button type="button" class="pw-toggle" data-target="login-pass" aria-label="Show password">
+            <svg class="ic-eye" viewBox="0 0 24 24"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="ic-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a3 3 0 004.24 4.24M9.9 5.1A10.9 10.9 0 0112 5c7 0 10.5 7 10.5 7a13.2 13.2 0 01-3.15 4.05M6.5 6.6C3.4 8.5 1.5 12 1.5 12a13.3 13.3 0 004.16 4.9"/></svg>
+          </button>
+        </div>
+        <div class="msg">Enter your password</div>
+      </div>
+
+      <div class="row-between"><a class="link">Forgot password?</a></div>
+
+      <button type="submit" class="cta" id="btn-login">
+        <span class="label">Log in</span>
+        <span class="spinner"><i></i></span>
+      </button>
+
+      <div class="oauth-divider"><span>or continue with</span></div>
+      <div class="oauth-row">
+        <button type="button" class="oauth-btn oauth-google" id="btn-google-login">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.47c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.92l-3.88-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.11C3.25 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.27a7.2 7.2 0 0 1 0-4.54v-3.1H1.27a12 12 0 0 0 0 10.75l4-3.11z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.63l4 3.1C6.22 6.86 8.87 4.75 12 4.75z"/></svg>
+          <span class="oauth-label">Google</span>
+        </button>
+        <button type="button" class="oauth-btn oauth-facebook" id="btn-facebook-login">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M22 12.06C22 6.51 17.52 2 12 2S2 6.51 2 12.06C2 17.08 5.66 21.24 10.44 22v-7.03H7.9v-2.91h2.54V9.85c0-2.51 1.49-3.9 3.77-3.9 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.89h2.78l-.44 2.91h-2.34V22C18.34 21.24 22 17.08 22 12.06Z"/></svg>
+          <span class="oauth-label">Facebook</span>
+        </button>
+      </div>
+
+      <p class="switch-line">New here? <a class="link" data-go="signup">Create an account</a></p>
+    </form>
+
+    <!-- SUCCESS -->
+    <div class="panel success" id="panel-success">
+      <div class="check-wrap">
+        <svg viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="successGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#2FE0C0"/>
+              <stop offset="100%" stop-color="#0FA98E"/>
+            </linearGradient>
+          </defs>
+          <circle class="check-circle" cx="50" cy="50" r="44"/>
+          <path class="check-mark" d="M32 52 L45 65 L70 36"/>
+        </svg>
+        <div class="confetti" id="confetti"></div>
+      </div>
+      <h1 id="successTitle">Account created</h1>
+      <p class="lede" id="successLede">Nice work, <span id="successName">fayole</span>. Your intership profile is live  sign in whenever you're ready to explore roles.</p>
+      <button type="button" class="cta" id="btn-success-continue">
+        <span class="label">Continue to login</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /.page -->
+
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const eyebrow = document.getElementById('eyebrow');
+  const headline = document.getElementById('headline');
+  const sub = document.getElementById('sub');
+  const pips = { 1:document.getElementById('pip-1'), 2:document.getElementById('pip-2'), 3:document.getElementById('pip-3') };
+
+  const copy = {
+    signup:{ eyebrow:'Step 01  Create account', headline:'Your internship<br><em>starts here.</em>', sub:"Set up your profile, so you can make purchase at anytime and anywhere" },
+    success1:{ eyebrow:'Step 02  Confirmed', headline:"You're<br><em>on the list.</em>", sub:'Your account is ready. Next stop: sign in and start applying.' },
+    login:{ eyebrow:'Step 03  Sign in', headline:'Good to see<br><em>you again.</em>', sub:'Log in to track applications and hear back from teams.' },
+    success2:{ eyebrow:'Signed in', headline:'Welcome<br><em>back aboard.</em>', sub:'Your homepage is loading up your latest matches.' }
+  };
+
+  function setCopy(key){
+    const c = copy[key];
+    eyebrow.textContent = c.eyebrow;
+    headline.innerHTML = c.headline;
+    sub.textContent = c.sub;
+  }
+
+  function setPips(activeStep, doneSteps){
+    Object.keys(pips).forEach(k=>{
+      pips[k].classList.remove('active','done');
+      if(doneSteps.includes(Number(k))) pips[k].classList.add('done');
+      if(Number(k)===activeStep) pips[k].classList.add('active');
+    });
+  }
+
+  function showPanel(id){
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function go(view){
+    if(view==='signup'){ setCopy('signup'); setPips(1,[]); showPanel('panel-signup'); stage.classList.remove('state-success'); }
+    if(view==='login'){ setCopy('login'); setPips(3,[1,2]); showPanel('panel-login'); stage.classList.remove('state-success'); }
+  }
+
+  document.querySelectorAll('[data-go]').forEach(el=>{
+    el.addEventListener('click', e=>{ e.preventDefault(); go(el.getAttribute('data-go')); });
+  });
+
+  // open straight to the login panel when linked as login.html#login
+  // (e.g. from the homepage's "Log in" link)
+  if(location.hash === '#login'){ go('login'); }
+
+  //  post-auth redirect target 
+  //  Every "Log in" / "Create account" link in the app appends
+  //  ?redirect=<page> so people land back where they were instead of
+  //  always on the homepage. Only a bare "<name>.html" (a sibling page
+  //  in pages/) or "../index.html" is accepted — anything else (a
+  //  different origin, a path with extra "/", javascript:, etc.) is
+  //  rejected and we fall back to the homepage.
+  function resolveRedirect(){
+    const raw = new URLSearchParams(location.search).get('redirect');
+    if(!raw) return '../index.html';
+    let value;
+    try{ value = decodeURIComponent(raw); } catch(e){ return '../index.html'; }
+    if(/^\.\.\/index\.html([?#].*)?$/.test(value)) return value;
+    if(/^[a-zA-Z0-9_-]+\.html([?#].*)?$/.test(value)) return value;
+    return '../index.html';
+  }
+  const postAuthTarget = resolveRedirect();
+
+  // validation helpers 
+  function setInvalid(fieldId, invalid){
+    document.getElementById(fieldId).classList.toggle('invalid', invalid);
+  }
+  function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  const loginIdMsg = document.getElementById('loginIdMsg');
+
+  //  account storage (so login can find accounts created on this device) 
+  const USERS_KEY = 'launchpad_users';
+  const CURRENT_USER_KEY = 'launchpad_currentUser';
+
+  function getStoredUsers(){
+    try{ return JSON.parse(localStorage.getItem(USERS_KEY)) || []; }
+    catch(e){ return []; }
+  }
+  function saveStoredUser(user){
+    const users = getStoredUsers();
+    const idx = users.findIndex(u =>
+      (u.email && user.email && u.email.toLowerCase()===user.email.toLowerCase()) ||
+      (u.username && user.username && u.username.toLowerCase()===user.username.toLowerCase())
+    );
+    if(idx>-1) users[idx] = user; else users.push(user);
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  }
+  function findStoredUser(identifier){
+    const id = identifier.trim().toLowerCase();
+    return getStoredUsers().find(u =>
+      (u.email && u.email.toLowerCase()===id) || (u.username && u.username.toLowerCase()===id)
+    ) || null;
+  }
+  function setCurrentUser(user){
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+  }
+
+  //  social sign-in (Google / Facebook)
+  //  NOTE: this is a front-end placeholder. Wiring up real Google/Facebook login
+  //  requires a Google Client ID + the Google Identity Services script, a Facebook
+  //  App ID + the Facebook SDK, and a backend route to verify the returned token
+  //  and create/find the user server-side. None of that exists in this project yet,
+  //  so clicking these buttons simulates a successful sign-in using mock profile
+  //  data so the rest of the app (header, profile page, etc.) has a user to show.
+  function mockSocialSignIn(provider, btn){
+    if(btn.classList.contains('loading')) return;
+    const label = btn.querySelector('.oauth-label') || btn;
+    const originalText = label.textContent;
+    btn.classList.add('loading');
+    btn.disabled = true;
+    label.textContent = provider === 'google' ? 'Connecting to Google…' : 'Connecting to Facebook…';
+
+    setTimeout(()=>{
+      const mockUser = provider === 'google'
+        ? { first:'Alex', last:'Mora', username:'alex.mora', email:'alex.mora@gmail.com', address:'', city:'', country:'', provider:'google' }
+        : { first:'Alex', last:'Mora', username:'alex.mora', email:'alex.mora@facebook.com', address:'', city:'', country:'', provider:'facebook' };
+
+      saveStoredUser(mockUser);
+      setCurrentUser(mockUser);
+
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      label.textContent = originalText;
+
+      window.location.href = postAuthTarget;
+    }, 900);
+  }
+
+  ['btn-google-signup','btn-google-login'].forEach(function(id){
+    const btn = document.getElementById(id);
+    if(btn) btn.addEventListener('click', function(){ mockSocialSignIn('google', btn); });
+  });
+  ['btn-facebook-signup','btn-facebook-login'].forEach(function(id){
+    const btn = document.getElementById(id);
+    if(btn) btn.addEventListener('click', function(){ mockSocialSignIn('facebook', btn); });
+  });
+
+  //  secure password system 
+  const passInput = document.getElementById('pass');
+  const confirmInput = document.getElementById('confirm');
+  const pwStrength = document.getElementById('pwStrength');
+  const pwStrengthLabel = document.getElementById('pwStrengthLabel');
+  const matchHint = document.getElementById('matchHint');
+
+  // small denylist of common/weak passwords  rejected even if they pass the character rules
+  const COMMON_PASSWORDS = new Set([
+    'password','password1','12345678','123456789','qwerty123','letmein',
+    'welcome1','iloveyou','admin123','abc12345','passw0rd','football',
+    'monkey123','dragon123','sunshine1','princess1','000000000'
+  ]);
+
+  function evaluatePassword(v){
+    const rules = {
+      len: v.length>=8,
+      cased: /[a-z]/.test(v) && /[A-Z]/.test(v),
+      num: /[0-9]/.test(v),
+      special: /[^A-Za-z0-9]/.test(v)
+    };
+    const metCount = Object.values(rules).filter(Boolean).length;
+    const isCommon = COMMON_PASSWORDS.has(v.toLowerCase());
+    const required = rules.len && rules.cased && rules.num; // special is recommended, not required
+    // score 0-4 drives the meter; long+all-four passwords top out at "strong"
+    let score = metCount;
+    if(v.length>=12 && metCount===4) score = 4;
+    if(isCommon) score = Math.min(score,1);
+    return { rules, metCount, isCommon, required: required && !isCommon, score };
+  }
+
+  function renderPasswordUI(){
+    const v = passInput.value;
+    const { rules, isCommon, score } = evaluatePassword(v);
+
+    ['len','case','num','special'].forEach(key=>{
+      const li = document.getElementById('req-'+key);
+      const map = { len:rules.len, case:rules.cased, num:rules.num, special:rules.special };
+      li.classList.toggle('met', !!map[key]);
+    });
+
+    pwStrength.className = 'pw-strength' + (v.length>0 ? ' s'+Math.max(score,1) : '');
+    const labels = ['','Weak','Fair','Good','Strong'];
+    const classes = ['','weak','fair','good','strong'];
+    if(v.length===0){ pwStrengthLabel.textContent=''; pwStrengthLabel.className='pw-strength-label'; }
+    else if(isCommon){ pwStrengthLabel.textContent='Too common'; pwStrengthLabel.className='pw-strength-label weak'; }
+    else{ pwStrengthLabel.textContent = labels[score] || 'Weak'; pwStrengthLabel.className = 'pw-strength-label '+(classes[score]||'weak'); }
+
+    renderMatchHint();
+  }
+
+  function renderMatchHint(){
+    const v = passInput.value, c = confirmInput.value;
+    if(c.length===0){ matchHint.className='match-hint'; matchHint.textContent=''; return; }
+    if(v===c){ matchHint.className='match-hint show ok'; matchHint.textContent='Passwords match'; }
+    else{ matchHint.className='match-hint show no'; matchHint.textContent="Passwords don't match yet"; }
+  }
+
+  passInput.addEventListener('input', renderPasswordUI);
+  confirmInput.addEventListener('input', renderMatchHint);
+
+  // show/hide toggles (works for every password field on the page)
+  document.querySelectorAll('.pw-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const input = document.getElementById(btn.dataset.target);
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.classList.toggle('showing', show);
+      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
+  });
+
+  // telephone rules
+  // dial code + expected national significant number (NSN) length per country
+  const PHONE_RULES = {
+    'Cameroon':        { code:'237', nsn:[9,9],  example:'+237 6XX XXX XXX' },
+    'Nigeria':         { code:'234', nsn:[10,10], example:'+234 8XX XXX XXXX' },
+    'Ghana':           { code:'233', nsn:[9,9],  example:'+233 2X XXX XXXX' },
+    'Kenya':           { code:'254', nsn:[9,9],  example:'+254 7XX XXX XXX' },
+    'South Africa':    { code:'27',  nsn:[9,9],  example:'+27 6X XXX XXXX' },
+    'Senegal':         { code:'221', nsn:[9,9],  example:'+221 7X XXX XX XX' },
+    "Côte d'Ivoire":   { code:'225', nsn:[10,10], example:'+225 07 XX XX XX XX' },
+    'United States':   { code:'1',   nsn:[10,10], example:'+1 XXX XXX XXXX' },
+    'United Kingdom':  { code:'44',  nsn:[10,10], example:'+44 7XXX XXXXXX' },
+    'France':          { code:'33',  nsn:[9,9],  example:'+33 6 XX XX XX XX' }
+  };
+
+  const phoneInput = document.getElementById('phone');
+  const phoneHint = document.getElementById('phoneHint');
+  const phoneMsg = document.getElementById('phoneMsg');
+  const countrySelect = document.getElementById('country');
+
+  // keep only a leading "+" and digits/spaces as the user types, and
+  // auto-insert the country's dial code the first time they type a digit
+  phoneInput.addEventListener('input', function(){
+    let v = this.value;
+    v = v.replace(/(?!^)[^\d\s]/g, '').replace(/^[^\d+]/,'');
+    if(v && v[0] !== '+' && /\d/.test(v[0])){
+      const rule = PHONE_RULES[countrySelect.value];
+      v = '+' + (rule ? rule.code : '') + (rule ? ' ' : '') + v;
+    }
+    this.value = v;
+    document.getElementById('f-phone').classList.remove('invalid');
+  });
+
+  function updatePhoneHint(){
+    const rule = PHONE_RULES[countrySelect.value];
+    phoneHint.textContent = rule
+      ? `Include the country code, e.g. ${rule.example}`
+      : 'Include the country code, e.g. +XXX XXXXXXXXX';
+    phoneInput.placeholder = rule ? rule.example : '+XXX XXXXXXXXX';
+  }
+  countrySelect.addEventListener('change', updatePhoneHint);
+  updatePhoneHint();
+
+  // reveal a free-text field when "Other" is chosen
+  const countryOtherField = document.getElementById('f-country-other');
+  const countryOtherInput = document.getElementById('countryOther');
+  function syncCountryOther(){
+    const isOther = countrySelect.value === 'Other';
+    countryOtherField.classList.toggle('open', isOther);
+    countryOtherInput.required = isOther;
+    if(!isOther){ countryOtherField.classList.remove('invalid'); countryOtherInput.value=''; }
+    else{ countryOtherInput.focus(); }
+  }
+  countrySelect.addEventListener('change', syncCountryOther);
+  countryOtherInput.addEventListener('input', ()=> countryOtherField.classList.remove('invalid'));
+
+  // the effective country name: the free-text value when "Other" is picked
+  function resolvedCountry(){
+    return countrySelect.value === 'Other' ? countryOtherInput.value.trim() : countrySelect.value;
+  }
+
+  function validatePhone(raw){
+    const v = raw.trim();
+    if(v==='') return { ok:false, msg:'Enter your phone number' };
+    if(v[0] !== '+') return { ok:false, msg:'Start with a country code, e.g. +237' };
+    const digits = v.slice(1).replace(/\D/g,'');
+    if(digits.length < 8) return { ok:false, msg:'That number looks too short' };
+    if(digits.length > 15) return { ok:false, msg:'That number looks too long' };
+    return { ok:true, msg:'' };
+  }
+
+  //  signup submit 
+  const signupForm = document.getElementById('panel-signup');
+  const btnSignup = document.getElementById('btn-signup');
+  let userData = null;
+  const usernameRe = /^[a-zA-Z0-9._]{3,}$/;
+
+  signupForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const first = document.getElementById('first');
+    const last = document.getElementById('last');
+    const username = document.getElementById('username');
+    const phone = document.getElementById('phone');
+    const email = document.getElementById('email');
+    const address = document.getElementById('address');
+    const city = document.getElementById('city');
+    const country = document.getElementById('country');
+    const pass = document.getElementById('pass');
+    const confirm = document.getElementById('confirm');
+
+    let ok = true;
+    setInvalid('f-first', first.value.trim()==='' ); if(first.value.trim()==='') ok=false;
+    setInvalid('f-last', last.value.trim()===''); if(last.value.trim()==='') ok=false;
+    const usernameOk = usernameRe.test(username.value.trim());
+    setInvalid('f-username', !usernameOk); if(!usernameOk) ok=false;
+
+    const phoneCheck = validatePhone(phone.value);
+    phoneMsg.textContent = phoneCheck.msg || 'Enter a valid phone number';
+    setInvalid('f-phone', !phoneCheck.ok); if(!phoneCheck.ok) ok=false;
+
+    const emailOk = isEmail(email.value.trim());
+    setInvalid('f-email', !emailOk); if(!emailOk) ok=false;
+    setInvalid('f-address', address.value.trim()===''); if(address.value.trim()==='') ok=false;
+    setInvalid('f-city', city.value.trim()===''); if(city.value.trim()==='') ok=false;
+    const countryOk = country.value.trim()!=='';
+    setInvalid('f-country', !countryOk); if(!countryOk) ok=false;
+    if(countryOk && country.value==='Other'){
+      const otherOk = countryOtherInput.value.trim()!=='';
+      countryOtherField.classList.toggle('invalid', !otherOk);
+      if(!otherOk) ok=false;
+    }
+
+    const evalResult = evaluatePassword(pass.value);
+    const passOk = evalResult.required;
+    setInvalid('f-pass', !passOk); if(!passOk) ok=false;
+    const matchOk = confirm.value===pass.value && confirm.value!=='';
+    setInvalid('f-confirm', !matchOk); if(!matchOk) ok=false;
+
+    if(!ok) return;
+
+    userData = {
+      first: first.value.trim(), last: last.value.trim(),
+      username: username.value.trim(), phone: phone.value.trim(),
+      email: email.value.trim(), address: address.value.trim(),
+      city: city.value.trim(), country: resolvedCountry()
+    };
+
+    btnSignup.classList.add('loading');
+    document.getElementById('traveler').classList.add('fast');
+
+    setTimeout(()=>{
+      btnSignup.classList.remove('loading');
+      stage.classList.add('state-success');
+      setCopy('success1');
+      setPips(2,[1]);
+
+      saveStoredUser(userData);
+      setCurrentUser(userData);
+
+      const goingHome = postAuthTarget === '../index.html';
+      document.getElementById('successTitle').textContent = 'Account created';
+      document.getElementById('successLede').innerHTML = goingHome
+        ? `Nice work, <span id="successName">${userData.first||'there'}</span>. Your Launchpad profile is live — taking you to your homepage.`
+        : `Nice work, <span id="successName">${userData.first||'there'}</span>. Your Launchpad profile is live — taking you back to where you left off.`;
+      document.getElementById('btn-success-continue').querySelector('.label').textContent = goingHome ? 'Continue to homepage' : 'Continue';
+      document.getElementById('btn-success-continue').dataset.next = 'return';
+
+      showPanel('panel-success');
+      burstConfetti();
+      setTimeout(()=>{ window.location.href = postAuthTarget; }, 2200);
+    }, 1100);
+  });
+
+  //  login submit 
+  const loginForm = document.getElementById('panel-login');
+  const btnLogin = document.getElementById('btn-login');
+
+  loginForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const identifierInput = document.getElementById('login-email');
+    const pass = document.getElementById('login-pass');
+    const identifier = identifierInput.value.trim();
+
+    let ok = true;
+    const identifierOk = identifier!=='' && (isEmail(identifier) || usernameRe.test(identifier));
+    loginIdMsg.textContent = identifier!=='' && !isEmail(identifier) && !usernameRe.test(identifier)
+      ? 'Enter a valid username or email address'
+      : 'Enter your username or email address';
+    setInvalid('f-login-email', !identifierOk); if(!identifierOk) ok=false;
+    const passOk = pass.value.length>0;
+    setInvalid('f-login-pass', !passOk); if(!passOk) ok=false;
+    if(!ok) return;
+
+    // look up a previously-registered account by username or email
+    const stored = findStoredUser(identifier);
+    if(stored){
+      userData = stored;
+    } else if(!userData){
+      userData = isEmail(identifier)
+        ? { first:'', last:'', username: identifier.split('@')[0], phone:'', email: identifier, address:'', city:'', country:'' }
+        : { first:'', last:'', username: identifier, phone:'', email:'', address:'', city:'', country:'' };
+    }
+
+    btnLogin.classList.add('loading');
+    document.getElementById('traveler').classList.add('fast');
+
+    setTimeout(()=>{
+      btnLogin.classList.remove('loading');
+      stage.classList.add('state-success');
+      setCopy('success2');
+      setPips(3,[1,2,3]);
+
+      setCurrentUser(userData);
+
+      const goingHome = postAuthTarget === '../index.html';
+      document.getElementById('successTitle').textContent = 'Signed in';
+      document.getElementById('successLede').innerHTML = goingHome
+        ? `Welcome back${userData.first? ', '+userData.first : ''}. Taking you to your homepage.`
+        : `Welcome back${userData.first? ', '+userData.first : ''}. Taking you back to where you left off.`;
+      document.getElementById('btn-success-continue').querySelector('.label').textContent = goingHome ? 'Continue to homepage' : 'Continue';
+      document.getElementById('btn-success-continue').dataset.next = 'return';
+
+      showPanel('panel-success');
+      burstConfetti();
+      setTimeout(()=>{ window.location.href = postAuthTarget; }, 2200);
+    }, 1000);
+  });
+
+  //  success continue button 
+  document.getElementById('btn-success-continue').addEventListener('click', function(){
+    const next = this.dataset.next;
+    if(next==='return'){ window.location.href = postAuthTarget; }
+  });
+
+  //  confetti 
+  function burstConfetti(){
+    const holder = document.getElementById('confetti');
+    holder.innerHTML = '';
+    const colors = ['#8A5CFF','#E14CFF','#2FE0C0','#FFB454'];
+    for(let i=0;i<22;i++){
+      const el = document.createElement('i');
+      const angle = Math.random()*Math.PI*2;
+      const dist = 60 + Math.random()*70;
+      const x = Math.cos(angle)*dist;
+      const y = Math.sin(angle)*dist - 20;
+      el.style.background = colors[i % colors.length];
+      el.style.borderRadius = Math.random()>0.5 ? '50%' : '2px';
+      el.animate([
+        { transform:'translate(-50%,-50%) translate(0,0) scale(0.6) rotate(0deg)', opacity:0 },
+        { transform:`translate(-50%,-50%) translate(${x*0.4}px, ${y*0.4}px) scale(1) rotate(${Math.random()*180}deg)`, opacity:1, offset:0.35 },
+        { transform:`translate(-50%,-50%) translate(${x}px, ${y+60}px) scale(0.7) rotate(${Math.random()*360}deg)`, opacity:0 }
+      ], { duration: 1100 + Math.random()*500, easing:'cubic-bezier(.22,1,.36,1)', delay: Math.random()*120 });
+      holder.appendChild(el);
+    }
+  }
+
+  // live-clear invalid state as user types
+  document.querySelectorAll('.field input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      inp.closest('.field').classList.remove('invalid');
+    });
+  });
+
+})();
+</script>
+</body>
+</html>

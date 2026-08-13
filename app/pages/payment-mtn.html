@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT  Pay with MTN Mobile Money</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/lift-shop.css">
+<link rel="stylesheet" href="../css/pay-provider.css">
+</head>
+<body class="lift-shell pay-mtn">
+
+<div id="lift-header"></div>
+
+<div class="lift-page pay-page">
+  <a href="payment-method.html" class="lift-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back
+  </a>
+  <div class="lift-crumb">Step 3 of 3 · Confirm payment</div>
+
+  <div class="pay-card">
+    <div class="pay-card-head">
+      <div class="pay-logo">my<br>MTN</div>
+      <h1>Pay with <span class="brand-word">MTN</span> Mobile Money</h1>
+    </div>
+
+    <div class="pay-amount-row">
+      <span>Amount to pay</span>
+      <strong id="amountValue">0 FCFA</strong>
+    </div>
+
+    <form id="payForm" novalidate>
+      <label class="pay-label">Mobile Money Number</label>
+      <div class="phone-row">
+        <div class="flag-chip"><span class="flag-swatch"></span>+237</div>
+        <input type="tel" id="phoneInput" inputmode="numeric" placeholder="6 70 13 44 56" maxlength="9" required>
+      </div>
+      <div class="field-error" id="phoneError"></div>
+
+      <label class="pay-label" for="pinInput">Enter Pincode</label>
+      <input type="password" id="pinInput" class="pin-input" placeholder="•••••" inputmode="numeric" maxlength="6" required>
+
+      <label class="pay-label" for="pinConfirm">Confirm Pincode</label>
+      <input type="password" id="pinConfirm" class="pin-input" placeholder="•••••" inputmode="numeric" maxlength="6" required>
+      <div class="field-error" id="pinError"></div>
+
+      <div class="pay-actions">
+        <a href="payment-method.html" class="lift-btn lift-btn-outline">Cancel Payment</a>
+        <button type="submit" class="lift-btn pay-btn" id="payBtn">Pay Now</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="pay-trust">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Your pincode is never stored  this is a secure simulated MTN MoMo checkout.
+  </div>
+</div>
+
+<div id="lift-footer"></div>
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script src="../js/pay-provider.js" data-method="MTN Mobile Money"></script>
+
+</body>
+</html>

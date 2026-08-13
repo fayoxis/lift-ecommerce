@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/lift-shop.css">
+<link rel="stylesheet" href="../css/marketplace.css">
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<div class="lift-page" style="max-width:1240px;">
+
+  <section class="mkt-hero">
+    <div class="mkt-hero-text">
+      <div class="eyebrow">LIFT Marketplace</div>
+      <h1>Everything you need, all in one place.</h1>
+      <p>From electronics and fashion to home, beauty, groceries and more  browse by category, catch what's trending, and check out securely with MTN or Orange Money, all without leaving LIFT.</p>
+      <a href="products.html" class="lift-btn lift-btn-primary">Browse All Products</a>
+    </div>
+    <div class="mkt-hero-stats">
+      <div><strong id="statCategories">5</strong><span>Categories</span></div>
+      <div><strong id="statProducts">0</strong><span>Products</span></div>
+      <div><strong>2</strong><span>Payment Options</span></div>
+    </div>
+  </section>
+
+  <div class="mkt-layout">
+    <aside class="mkt-sidebar">
+      <div class="mkt-filter-group">
+        <div class="mkt-filter-title">All Categories</div>
+        <div class="mkt-cat-list" id="sidebarCatList">
+          <a href="#" data-category="" class="active">All Categories</a>
+        </div>
+      </div>
+      <div class="mkt-filter-group">
+        <div class="mkt-filter-title">Location</div>
+        <div class="mkt-chip-group" id="sidebarLocationList"></div>
+      </div>
+      <div class="mkt-filter-group">
+        <div class="mkt-filter-title">Size</div>
+        <div class="mkt-chip-group" id="sidebarSizeList"></div>
+      </div>
+      <div class="mkt-filter-group">
+        <div class="mkt-filter-title">Price</div>
+        <div class="mkt-price-list" id="sidebarPriceList">
+          <a href="#" data-max="10000">Under 10,000 FCFA</a>
+          <a href="#" data-min="10000" data-max="50000">10,000 – 50,000 FCFA</a>
+          <a href="#" data-min="50000" data-max="150000">50,000 – 150,000 FCFA</a>
+          <a href="#" data-min="150000">Above 150,000 FCFA</a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="mkt-main">
+
+      <!-- Filtered results: shown in place of the sections below whenever a
+           category / location / size / price filter is active. Filtering
+           happens right here on the Marketplace page — it never jumps to
+           products.html. That page's own category chips are separate and
+           only apply once someone is already browsing there. -->
+      <section class="mkt-section" id="mktResults" style="display:none;">
+        <div class="mkt-section-head">
+          <h2 id="mktResultsTitle">Results</h2>
+          <a href="#" id="mktClearFilters">Clear filters ×</a>
+        </div>
+        <div class="mkt-chip-group" id="mktPills" style="margin-bottom:16px;"></div>
+        <div class="trend-grid" id="mktResultsGrid"></div>
+      </section>
+
+      <div id="mktDefaultSections">
+
+        <section class="mkt-section" style="margin-bottom:0;">
+          <div class="mkt-hero" style="padding:38px 40px;">
+            <div class="mkt-hero-text" style="max-width:640px;">
+              <div class="eyebrow">Community Feed</div>
+              <h1 style="font-size:1.5rem;">Selling something? Bought something you love? Post it.</h1>
+              <p>Share announcements, put your own products in front of your followers, or publicize a recent purchase  right from the LIFT Feed.</p>
+              <a href="profile.html#profileFeedPanel" class="lift-btn lift-btn-primary">Go to Feed</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="mkt-section" style="margin-top:40px;">
+          <div class="mkt-section-head"><h2>Trending Now</h2><a href="products.html">See more →</a></div>
+          <div class="trend-grid" id="trendGrid"></div>
+        </section>
+
+        <section class="mkt-section">
+          <div class="mkt-section-head"><h2>Shop by Category</h2><a href="products.html">View all products →</a></div>
+          <div class="cat-tiles" id="catTiles"></div>
+        </section>
+
+        <section class="mkt-section" style="margin-bottom:0;">
+          <div class="mkt-section-head"><h2>Deals For You</h2></div>
+          <div class="deals-strip">
+            <div class="deal-card gold">
+              <h3>10% off your first cart</h3>
+              <p>Use this code at checkout on any order, any category.</p>
+              <span class="code">LIFT10</span>
+            </div>
+            <div class="deal-card dark">
+              <h3>Welcome bonus 5% off</h3>
+              <p>New to LIFT? This one's on us for your first purchase.</p>
+              <span class="code">WELCOME5</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="lift-footer"></div>
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('marketplace');
+  LIFT.mountFooter();
+
+  // Category tiles: built straight from the shared catalog, so every
+  // category the shop actually stocks shows up here automatically —
+  // with an accurate live product count and a representative photo.
+  var byCategory = {};
+  LIFT.CATALOG.forEach(function(p){
+    byCategory[p.category] = byCategory[p.category] || [];
+    byCategory[p.category].push(p);
+  });
+  var CATEGORY_TILES = Object.keys(byCategory).map(function(name){
+    return { name: name, count: byCategory[name].length, img: byCategory[name][0].img };
+  });
+
+  var catHost = document.getElementById('catTiles');
+  CATEGORY_TILES.forEach(function(c){
+    var a = document.createElement('a');
+    a.className = 'cat-tile';
+    a.href = '#';
+    a.dataset.category = c.name;
+    a.innerHTML =
+      '<img src="' + c.img + '" alt="' + c.name + '">' +
+      '<div class="cat-tile-body"><h3>' + c.name + '</h3><span>' + c.count + ' products</span></div>';
+    catHost.appendChild(a);
+  });
+  document.getElementById('statCategories').textContent = CATEGORY_TILES.length;
+  document.getElementById('statProducts').textContent = LIFT.CATALOG.length;
+
+  // Sidebar: All Categories list
+  var sidebarCatList = document.getElementById('sidebarCatList');
+  CATEGORY_TILES.forEach(function(c){
+    var a = document.createElement('a');
+    a.href = '#';
+    a.dataset.category = c.name;
+    a.innerHTML = c.name + '<span>' + c.count + '</span>';
+    sidebarCatList.appendChild(a);
+  });
+
+  // Sidebar: Location chips
+  var locHost = document.getElementById('sidebarLocationList');
+  LIFT.LOCATIONS.forEach(function(loc){
+    var a = document.createElement('a');
+    a.className = 'mkt-filter-chip';
+    a.href = '#';
+    a.dataset.location = loc;
+    a.textContent = loc;
+    locHost.appendChild(a);
+  });
+
+  // Sidebar: Size chips (union of every size across apparel + footwear)
+  var allSizes = Array.from(new Set(LIFT.CATALOG.reduce(function(acc, p){
+    return p.sizes ? acc.concat(p.sizes) : acc;
+  }, [])));
+  var sizeHost = document.getElementById('sidebarSizeList');
+  allSizes.forEach(function(sz){
+    var a = document.createElement('a');
+    a.className = 'mkt-filter-chip';
+    a.href = '#';
+    a.dataset.size = sz;
+    a.textContent = sz;
+    sizeHost.appendChild(a);
+  });
+
+  // ---- In-page filtering (category / location / size / price) ----
+  // Everything below keeps the visitor on the Marketplace page. Category
+  // search only ever redirects to products.html when someone is already
+  // on the Products page (see products.html, which reads these same
+  // query params for its own chips).
+  var resultsSection = document.getElementById('mktResults');
+  var resultsTitle = document.getElementById('mktResultsTitle');
+  var resultsGrid = document.getElementById('mktResultsGrid');
+  var defaultSections = document.getElementById('mktDefaultSections');
+  var pillsHost = document.getElementById('mktPills');
+  var clearFiltersLink = document.getElementById('mktClearFilters');
+  var priceLinks = document.querySelectorAll('#sidebarPriceList a');
+
+  var params = new URLSearchParams(location.search);
+  var state = {
+    category: params.get('category') || '',
+    location: params.get('location') || '',
+    size: params.get('size') || '',
+    minPrice: params.has('minPrice') ? parseInt(params.get('minPrice'), 10) : null,
+    maxPrice: params.has('maxPrice') ? parseInt(params.get('maxPrice'), 10) : null
+  };
+
+  function isFiltering(){
+    return !!(state.category || state.location || state.size || state.minPrice != null || state.maxPrice != null);
+  }
+
+  function matches(p){
+    var catHit = state.category ? p.category === state.category : true;
+    var locHit = state.location ? p.location === state.location : true;
+    var sizeHit = state.size ? (p.sizes && p.sizes.indexOf(state.size) > -1) : true;
+    var minHit = state.minPrice != null ? p.price >= state.minPrice : true;
+    var maxHit = state.maxPrice != null ? p.price <= state.maxPrice : true;
+    return catHit && locHit && sizeHit && minHit && maxHit;
+  }
+
+  function syncUrl(){
+    var p = new URLSearchParams();
+    if(state.category) p.set('category', state.category);
+    if(state.location) p.set('location', state.location);
+    if(state.size) p.set('size', state.size);
+    if(state.minPrice != null) p.set('minPrice', state.minPrice);
+    if(state.maxPrice != null) p.set('maxPrice', state.maxPrice);
+    var qs = p.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+
+  function syncActiveStates(){
+    Array.prototype.forEach.call(sidebarCatList.querySelectorAll('a'), function(a){
+      a.classList.toggle('active', a.dataset.category === state.category);
+    });
+    Array.prototype.forEach.call(locHost.querySelectorAll('a'), function(a){
+      a.classList.toggle('active', a.dataset.location === state.location);
+    });
+    Array.prototype.forEach.call(sizeHost.querySelectorAll('a'), function(a){
+      a.classList.toggle('active', a.dataset.size === state.size);
+    });
+    Array.prototype.forEach.call(priceLinks, function(a){
+      var min = a.dataset.min ? parseInt(a.dataset.min, 10) : null;
+      var max = a.dataset.max ? parseInt(a.dataset.max, 10) : null;
+      a.classList.toggle('active', min === state.minPrice && max === state.maxPrice);
+    });
+  }
+
+  function pillsFor(){
+    var pills = [];
+    if(state.category) pills.push({ label: state.category, clear: function(){ state.category = ''; } });
+    if(state.location) pills.push({ label: state.location, clear: function(){ state.location = ''; } });
+    if(state.size) pills.push({ label: 'Size ' + state.size, clear: function(){ state.size = ''; } });
+    if(state.minPrice != null || state.maxPrice != null){
+      var label = state.minPrice != null && state.maxPrice != null
+        ? LIFT.fcfa(state.minPrice) + ' – ' + LIFT.fcfa(state.maxPrice)
+        : state.minPrice != null ? 'Above ' + LIFT.fcfa(state.minPrice) : 'Under ' + LIFT.fcfa(state.maxPrice);
+      pills.push({ label: label, clear: function(){ state.minPrice = null; state.maxPrice = null; } });
+    }
+    return pills;
+  }
+
+  var currentPills = [];
+
+  function renderResults(){
+    var filtering = isFiltering();
+    resultsSection.style.display = filtering ? 'block' : 'none';
+    defaultSections.style.display = filtering ? 'none' : 'block';
+    if(!filtering) return;
+
+    var filtered = LIFT.CATALOG.filter(matches);
+    resultsTitle.textContent = filtered.length + (filtered.length === 1 ? ' result' : ' results');
+
+    currentPills = pillsFor();
+    pillsHost.innerHTML = currentPills.map(function(p, i){
+      return '<a href="#" class="mkt-filter-chip active" data-pill="' + i + '">' + LIFT.escapeHTML(p.label) + ' ×</a>';
+    }).join('');
+
+    resultsGrid.innerHTML = filtered.length ? filtered.map(function(p){
+      return (
+        '<div class="trend-card">' +
+          '<div class="trend-img"><img src="' + p.img + '" alt="' + p.name + '"></div>' +
+          '<div class="trend-body">' +
+            '<h4>' + p.name + '</h4>' +
+            '<div class="cat">' + p.category + '</div>' +
+            '<div class="trend-foot">' +
+              '<span class="trend-price">' + LIFT.fcfa(p.price) + '</span>' +
+              '<button class="trend-add" data-id="' + p.id + '" aria-label="Add ' + p.name + ' to cart">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('') : '<div class="lift-empty" style="grid-column:1/-1;"><h3>No products match your filters</h3><p>Try a different category, location, size or price range.</p></div>';
+
+    syncActiveStates();
+  }
+
+  function applyFilters(){
+    renderResults();
+    syncUrl();
+  }
+
+  sidebarCatList.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if(!a) return;
+    e.preventDefault();
+    state.category = a.dataset.category || '';
+    applyFilters();
+  });
+
+  catHost.addEventListener('click', function(e){
+    var a = e.target.closest('.cat-tile');
+    if(!a) return;
+    e.preventDefault();
+    state.category = a.dataset.category || '';
+    applyFilters();
+  });
+
+  locHost.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if(!a) return;
+    e.preventDefault();
+    state.location = (state.location === a.dataset.location) ? '' : a.dataset.location;
+    applyFilters();
+  });
+
+  sizeHost.addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if(!a) return;
+    e.preventDefault();
+    state.size = (state.size === a.dataset.size) ? '' : a.dataset.size;
+    applyFilters();
+  });
+
+  document.getElementById('sidebarPriceList').addEventListener('click', function(e){
+    var a = e.target.closest('a');
+    if(!a) return;
+    e.preventDefault();
+    var min = a.dataset.min ? parseInt(a.dataset.min, 10) : null;
+    var max = a.dataset.max ? parseInt(a.dataset.max, 10) : null;
+    if(min === state.minPrice && max === state.maxPrice){
+      state.minPrice = null; state.maxPrice = null;
+    } else {
+      state.minPrice = min; state.maxPrice = max;
+    }
+    applyFilters();
+  });
+
+  pillsHost.addEventListener('click', function(e){
+    var a = e.target.closest('[data-pill]');
+    if(!a) return;
+    e.preventDefault();
+    var pill = currentPills[Number(a.dataset.pill)];
+    if(pill){ pill.clear(); applyFilters(); }
+  });
+
+  clearFiltersLink.addEventListener('click', function(e){
+    e.preventDefault();
+    state.category = ''; state.location = ''; state.size = '';
+    state.minPrice = null; state.maxPrice = null;
+    applyFilters();
+  });
+
+  resultsGrid.addEventListener('click', function(e){
+    var btn = e.target.closest('.trend-add');
+    if(!btn) return;
+    LIFT.cart.add(btn.dataset.id, 1);
+    LIFT.toast(LIFT.getProduct(btn.dataset.id).name + ' added to cart');
+  });
+
+  renderResults();
+
+  // Trending Now: pull straight from the shared catalog.
+  var TRENDING_IDS = ['smartphone','sneakers','handbag','skincare-set','yoga-mat','baby-stroller'];
+  var trendHost = document.getElementById('trendGrid');
+  TRENDING_IDS.forEach(function(id, i){
+    var p = LIFT.getProduct(id);
+    if(!p) return;
+    var card = document.createElement('div');
+    card.className = 'trend-card';
+    card.innerHTML =
+      '<div class="trend-img">' + (i < 2 ? '<span class="trend-tag">Trending</span>' : '') +
+        '<img src="' + p.img + '" alt="' + p.name + '"></div>' +
+      '<div class="trend-body">' +
+        '<h4>' + p.name + '</h4>' +
+        '<div class="cat">' + p.category + '</div>' +
+        '<div class="trend-foot">' +
+          '<span class="trend-price">' + LIFT.fcfa(p.price) + '</span>' +
+          '<button class="trend-add" data-id="' + p.id + '" aria-label="Add ' + p.name + ' to cart">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+    trendHost.appendChild(card);
+  });
+
+  trendHost.addEventListener('click', function(e){
+    var btn = e.target.closest('.trend-add');
+    if(!btn) return;
+    LIFT.cart.add(btn.dataset.id, 1);
+    LIFT.toast(LIFT.getProduct(btn.dataset.id).name + ' added to cart');
+  });
+</script>
+
+</body>
+</html>

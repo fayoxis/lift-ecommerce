@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT My Cart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/lift-shop.css">
+<link rel="stylesheet" href="../css/cart.css">
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<div class="lift-page">
+  <a href="products.html" class="lift-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Continue shopping
+  </a>
+  <h1 class="lift-page-title">My Cart</h1>
+
+  <div id="cartContent"></div>
+</div>
+
+<div id="lift-footer"></div>
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('products');
+  LIFT.mountFooter();
+
+  var content = document.getElementById('cartContent');
+
+  function render(){
+    var t = LIFT.cart.totals();
+
+    if(!t.lines.length){
+      content.innerHTML =
+        '<div class="lift-empty">' +
+          '<div class="lift-empty-icon">' + LIFT.icon('shopping-bag') + '</div>' +
+          '<h3>Your cart is empty</h3>' +
+          '<p>Looks like you haven\'t added anything yet. Let\'s fix that.</p>' +
+          '<a href="products.html" class="lift-btn lift-btn-primary">Browse Products</a>' +
+        '</div>';
+      return;
+    }
+
+    var rows = t.lines.map(function(l){
+      return (
+        '<div class="cart-row" data-id="' + l.id + '">' +
+          '<div class="cart-thumb"><img src="' + l.img + '" alt="' + l.name + '"></div>' +
+          '<div class="cart-name">' + l.name + '<small>' + LIFT.fcfa(l.price) + ' each</small></div>' +
+          '<div class="qty-control">' +
+            '<button type="button" class="qty-dec" aria-label="Decrease quantity">−</button>' +
+            '<span>' + l.qty + '</span>' +
+            '<button type="button" class="qty-inc" aria-label="Increase quantity">+</button>' +
+          '</div>' +
+          '<div class="cart-total-cell">' + LIFT.fcfa(l.lineTotal) + '</div>' +
+          '<button type="button" class="cart-remove" aria-label="Remove ' + l.name + '">&times;</button>' +
+        '</div>'
+      );
+    }).join('');
+
+    content.innerHTML =
+      '<div class="cart-table">' +
+        '<div class="cart-head"><span>Image</span><span>Product</span><span>Quantity</span><span>Total</span><span></span></div>' +
+        rows +
+      '</div>' +
+      '<div class="cart-bottom">' +
+        '<div>' +
+          '<div class="coupon-row">' +
+            '<input type="text" id="couponInput" placeholder="Enter coupon code" value="' + (t.coupon || '') + '">' +
+            '<button type="button" id="applyCoupon">Apply</button>' +
+          '</div>' +
+          '<div class="coupon-hint">Try <strong>LIFT10</strong> (10% off) or <strong>WELCOME5</strong> (5% off).</div>' +
+        '</div>' +
+        '<div class="totals-box">' +
+          '<div class="totals-line"><span>Subtotal</span><span>' + LIFT.fcfa(t.subtotal) + '</span></div>' +
+          (t.discount ? '<div class="totals-line discount"><span>Discount (' + t.coupon + ')</span><span>-' + LIFT.fcfa(t.discount) + '</span></div>' : '') +
+          '<div class="totals-line grand"><span>Total</span><span>' + LIFT.fcfa(t.total) + '</span></div>' +
+          '<a href="order-summary.html" class="lift-btn lift-btn-primary lift-btn-block checkout-cta">Proceed Checkout</a>' +
+        '</div>' +
+      '</div>';
+  }
+
+  content.addEventListener('click', function(e){
+    var row = e.target.closest('.cart-row');
+    if(!row) return;
+    var id = row.dataset.id;
+    if(e.target.classList.contains('qty-inc')){
+      var current = LIFT.cart.lines().find(function(l){return l.id===id;});
+      LIFT.cart.setQty(id, (current ? current.qty : 0) + 1);
+      render();
+    }
+    if(e.target.classList.contains('qty-dec')){
+      var current2 = LIFT.cart.lines().find(function(l){return l.id===id;});
+      LIFT.cart.setQty(id, (current2 ? current2.qty : 1) - 1);
+      render();
+    }
+    if(e.target.classList.contains('cart-remove')){
+      var name = row.querySelector('.cart-name').firstChild.textContent;
+      LIFT.cart.remove(id);
+      LIFT.toast(name + ' removed from cart');
+      render();
+    }
+    if(e.target.id === 'applyCoupon'){
+      var code = document.getElementById('couponInput').value;
+      var res = LIFT.cart.applyCoupon(code);
+      LIFT.toast(res.ok ? 'Coupon applied — ' + (res.rate*100) + '% off' : 'That coupon code isn\'t valid');
+      render();
+    }
+  });
+
+  render();
+</script>
+
+</body>
+</html>

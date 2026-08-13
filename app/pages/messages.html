@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT  Messages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/lift-shop.css">
+<link rel="stylesheet" href="../css/messages.css">
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<div class="lift-page msg-page">
+  <a href="profile.html" class="lift-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to profile
+  </a>
+  <h1 class="lift-page-title">Messages</h1>
+  <div id="msgContent"></div>
+</div>
+
+<div id="lift-footer"></div>
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('products');
+  LIFT.mountFooter();
+
+  var host = document.getElementById('msgContent');
+  var params = new URLSearchParams(location.search);
+  var activeKey = params.get('to') || null;
+
+  function fmtTime(ts){
+    return new Date(ts).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+  }
+  function initialOf(name){ return (name || '?').trim().charAt(0).toUpperCase(); }
+
+  function renderShell(){
+    if(!LIFT.user.get()){
+      host.innerHTML =
+        '<div class="lift-empty">' +
+          '<div class="lift-empty-icon">' + LIFT.icon('lock') + '</div>' +
+          '<h3>Log in to view messages</h3>' +
+          '<p>Sign in to message the shoppers you follow.</p>' +
+          '<a href="' + LIFT.loginUrl('#login') + '" class="lift-btn lift-btn-primary">Log In</a>' +
+        '</div>';
+      return false;
+    }
+    host.innerHTML =
+      '<div class="msg-wrap">' +
+        '<div class="thread-list" id="threadList"></div>' +
+        '<div class="convo" id="convoPane"></div>' +
+      '</div>';
+    return true;
+  }
+
+  function renderThreadList(){
+    var listEl = document.getElementById('threadList');
+    var threads = LIFT.messages.inboxThreads();
+
+    // make sure a thread exists for a ?to= deep link even before any message is sent
+    if(activeKey && !threads.some(function(t){ return t.key === activeKey; })){
+      threads.unshift({ key: activeKey, name: LIFT.social.displayNameFor(activeKey), lastText: 'Say hello', lastAt: Date.now(), unread: 0, isNew: true });
+    }
+
+    if(!threads.length){
+      listEl.innerHTML =
+        '<div class="thread-list-head">Conversations</div>' +
+        '<div style="padding:20px 18px;color:var(--lh-text-soft);font-size:.85rem;">No conversations yet. Visit <a href="people.html" style="color:var(--lh-gold-deep);font-weight:700;">Find People</a> to start one.</div>';
+      return;
+    }
+
+    listEl.innerHTML =
+      '<div class="thread-list-head">Conversations</div>' +
+      threads.map(function(t){
+        return (
+          '<div class="thread-row' + (t.key === activeKey ? ' active' : '') + '" data-key="' + t.key + '">' +
+            '<div class="thread-avatar">' + initialOf(t.name) + '</div>' +
+            '<div class="thread-meta">' +
+              '<div class="t-name">' + LIFT.escapeHTML(t.name) + (t.unread ? '<span class="unread-dot"></span>' : '') + '</div>' +
+              '<div class="t-last">' + LIFT.escapeHTML(t.lastText) + '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+  }
+
+  function renderConvo(){
+    var pane = document.getElementById('convoPane');
+    if(!activeKey){
+      pane.innerHTML =
+        '<div class="convo-empty">' +
+          '<div style="font-size:2rem;">' + LIFT.icon('message-circle') + '</div>' +
+          '<div>Select a conversation, or <a href="people.html" style="color:var(--lh-gold-deep);font-weight:700;text-decoration:none;">find someone new to message</a>.</div>' +
+        '</div>';
+      return;
+    }
+
+    LIFT.messages.markRead(activeKey);
+    var name = LIFT.social.displayNameFor(activeKey);
+    var history = LIFT.messages.conversationWith(activeKey);
+    var meKey = LIFT.user.key(LIFT.user.get());
+
+    pane.innerHTML =
+      '<div class="convo-head"><div class="thread-avatar">' + initialOf(name) + '</div><h3>' + LIFT.escapeHTML(name) + '</h3></div>' +
+      '<div class="convo-body" id="convoBody">' +
+        (history.length ? history.map(function(m){
+          var mine = m.from === meKey;
+          return '<div class="bubble ' + (mine ? 'mine' : 'theirs') + '">' + LIFT.escapeHTML(m.text) + '<time>' + fmtTime(m.at) + '</time></div>';
+        }).join('') : '<div style="color:var(--lh-text-soft);font-size:.85rem;text-align:center;margin-top:20px;">No messages yet — say hello ' + LIFT.icon('hand') + '</div>') +
+      '</div>' +
+      '<form class="convo-form" id="convoForm">' +
+        '<input type="text" id="convoInput" placeholder="Type a message…" autocomplete="off">' +
+        '<button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>' +
+      '</form>';
+
+    var body = document.getElementById('convoBody');
+    body.scrollTop = body.scrollHeight;
+
+    document.getElementById('convoForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      var input = document.getElementById('convoInput');
+      var text = input.value.trim();
+      if(!text) return;
+      LIFT.messages.send(activeKey, text);
+      input.value = '';
+      renderThreadList();
+      renderConvo();
+    });
+  }
+
+  document.addEventListener('click', function(e){
+    var row = e.target.closest('.thread-row');
+    if(!row) return;
+    activeKey = row.dataset.key;
+    var url = new URL(location.href);
+    url.searchParams.set('to', activeKey);
+    history.replaceState(null, '', url);
+    renderThreadList();
+    renderConvo();
+  });
+
+  if(renderShell()){
+    renderThreadList();
+    renderConvo();
+  }
+</script>
+
+</body>
+</html>

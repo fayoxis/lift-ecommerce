@@ -1,0 +1,56 @@
+
+  .pay-hero{text-align:center;margin-bottom:8px;}
+  .amount-chip{
+    display:inline-flex;align-items:center;gap:10px;background:var(--lh-ink);color:#fff;
+    padding:12px 24px;border-radius:40px;font-weight:700;font-size:1.05rem;margin:14px 0 36px;
+  }
+  .amount-chip span{color:var(--lh-gold-pale);font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+  .method-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:24px;max-width:640px;margin:0 auto 30px;
+  }
+  .method-card{
+    border-radius:18px;padding:30px 24px;cursor:pointer;position:relative;overflow:hidden;
+    border:2px solid transparent;transition:transform .2s ease,box-shadow .2s ease;
+    display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;
+    text-decoration:none;color:inherit;width:100%;font-family:var(--lh-font-body);
+  }
+  .method-card:hover{transform:translateY(-4px);box-shadow:0 24px 44px -20px rgba(24,26,31,.28);}
+  .method-card.mtn{background:linear-gradient(155deg,#FFE24D,#FFC72C);}
+  .method-card.orange{background:linear-gradient(155deg,#FF9A5A,#E8621E);color:#fff;}
+  .method-logo{
+    width:78px;height:78px;border-radius:50%;background:rgba(255,255,255,.55);
+    display:flex;align-items:center;justify-content:center;font-family:var(--lh-font-display);
+    font-weight:700;font-size:1.15rem;color:#1a1408;
+  }
+  .method-card.orange .method-logo{background:rgba(255,255,255,.25);color:#fff;}
+  .method-card h3{font-size:1.15rem;font-weight:700;}
+  .method-card p{font-size:.82rem;opacity:.85;}
+  .method-card .chev{position:absolute;top:18px;right:18px;opacity:.6;}
+
+  .trust-row{
+    display:flex;justify-content:center;gap:26px;flex-wrap:wrap;color:var(--lh-text-soft);font-size:.78rem;
+    margin-top:10px;
+  }
+  .trust-row span{display:flex;align-items:center;gap:6px;}
+  .trust-row svg{width:15px;height:15px;color:var(--lh-gold-deep);}
+
+  /* ---- Payment popup ---- */
+  .pay-modal-overlay{
+    position:fixed;inset:0;background:rgba(11,12,15,.5);backdrop-filter:blur(3px);
+    display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;
+    overflow-y:auto;z-index:400;
+    opacity:0;pointer-events:none;transition:opacity .2s ease;
+  }
+  .pay-modal-overlay.open{opacity:1;pointer-events:auto;}
+  .pay-modal{
+    width:100%;max-width:560px;transform:translateY(-14px);transition:transform .22s ease;
+  }
+  .pay-modal-overlay.open .pay-modal{transform:translateY(0);}
+  .pay-modal .lift-crumb{text-align:left;}
+  .pay-modal .pay-card{margin-top:10px;}
+  .pay-modal-close{
+    display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--lh-text-soft);
+    font-size:.82rem;font-weight:700;cursor:pointer;margin-bottom:6px;
+  }
+  .pay-modal-close:hover{color:var(--lh-text);}
+  .pay-modal-close svg{width:16px;height:16px;}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT Style For Everyone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/lift-shop.css">
+<link rel="stylesheet" href="css/landimgpage.css">
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<section class="hero" id="top">
+  <div class="hero-text">
+    <h1>Style<br>For Everyone</h1>
+    <p>Discover the latest trends in men's and women's fashion  and check out securely with MTN or Orange Money.</p>
+    <div class="hero-buttons">
+      <a href="pages/products.html" class="btn-black">Shop Now</a>
+      <a href="pages/ourservices.html" class="btn-black btn-outline">Explore Now</a>
+    </div>
+  </div>
+  <div class="hero-image">
+    <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=80" alt="Fashion editorial portrait">
+  </div>
+</section>
+
+<section class="products" id="products">
+  <h2 class="section-title">Our Products</h2>
+  <div class="product-grid" id="productGrid"></div>
+  <div class="view-more-wrap">
+    <a href="pages/products.html" class="btn-black view-more">View more</a>
+  </div>
+</section>
+
+<section class="categories">
+  <h2 class="section-title">Shop By Category</h2>
+  <div class="cat-grid" id="catGrid"></div>
+</section>
+
+<section class="promo">
+  <div class="promo-text">
+    <h2>Summer Collection 2026</h2>
+    <p>Up to 5% OFF with code WELCOME5</p>
+    <a href="pages/products.html" class="btn-black">Shop Now</a>
+  </div>
+  <div class="promo-img">
+    <img src="https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=700&q=80" alt="Summer collection model">
+  </div>
+</section>
+
+<section class="services" id="services">
+  <h2 class="section-title">Our Services</h2>
+  <div class="services-grid" id="serviceGrid"></div>
+</section>
+
+<div id="lift-footer"></div>
+
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('home');
+  LIFT.mountFooter();
+
+  var FEATURED = ['robe','sneakers','tshirt','pullover'];
+  var CATEGORIES = [
+    { name:'Men', img:'https://images.unsplash.com/photo-1516257984-b1b4d707412e?w=400&q=80' },
+    { name:'Women', img:'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80' },
+    { name:'Accessoires', img:'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=80' }
+  ];
+  var SERVICES = [
+    { name:'Fast Delivery', icon:'truck' },
+    { name:'Tracking order', icon:'map-pin' },
+    { name:'Secure Payment', icon:'credit-card' },
+    { name:'Customer Service', icon:'headphones' }
+  ];
+
+  function starString(r){
+    var full = Math.floor(r), half = r % 1 >= 0.5;
+    return '★'.repeat(full) + (half ? '½' : '');
+  }
+
+  var productGrid = document.getElementById('productGrid');
+  FEATURED.forEach(function(id){
+    var p = LIFT.getProduct(id);
+    if(!p) return;
+    var card = document.createElement('div');
+    card.className = 'product-card';
+    card.innerHTML =
+      '<a href="pages/products.html?q=' + encodeURIComponent(p.name) + '" class="product-img"><img src="' + p.img + '" alt="' + p.name + '"></a>' +
+      '<div class="product-info">' +
+        '<h3>' + p.name + '</h3>' +
+        '<div class="rating">' + starString(p.rating) + ' <span>' + p.rating + '</span></div>' +
+        '<div class="price-row"><span class="label">PRICE</span><span>' + LIFT.fcfa(p.price) + '</span></div>' +
+        '<button class="add-cart" data-id="' + p.id + '">Add To Cart</button>' +
+      '</div>';
+    productGrid.appendChild(card);
+  });
+
+  var catGrid = document.getElementById('catGrid');
+  CATEGORIES.forEach(function(c){
+    var el = document.createElement('div');
+    el.className = 'cat-card';
+    el.innerHTML =
+      '<div class="cat-img"><img src="' + c.img + '" alt="' + c.name + '"></div>' +
+      '<h3>' + c.name + '</h3>' +
+      '<a href="pages/products.html" class="btn-black">Shop Now</a>';
+    catGrid.appendChild(el);
+  });
+
+  var serviceGrid = document.getElementById('serviceGrid');
+  SERVICES.forEach(function(s){
+    var el = document.createElement('div');
+    el.className = 'service';
+    el.innerHTML = '<div class="service-icon">' + LIFT.icon(s.icon) + '</div><h4>' + s.name + '</h4>';
+    serviceGrid.appendChild(el);
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.add-cart');
+    if(btn){
+      LIFT.cart.add(btn.dataset.id, 1);
+      LIFT.toast(LIFT.getProduct(btn.dataset.id).name + ' added to cart');
+    }
+  });
+</script>
+
+</body>
+</html>

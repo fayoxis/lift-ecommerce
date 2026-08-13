@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('lift-theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFT  Order Summary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/lift-shop.css">
+<style>
+  .summary-card{
+    background:var(--lh-surface);border:1px solid var(--lh-line);border-radius:20px;
+    padding:30px 30px 8px;box-shadow:0 30px 60px -40px rgba(24,26,31,.25);margin-bottom:26px;
+  }
+  .summary-card h2{font-size:1.3rem;font-weight:600;margin-bottom:20px;}
+  .summary-row{
+    display:grid;grid-template-columns:74px 60px 2fr 1fr;align-items:center;gap:16px;
+    padding:16px 0;border-top:1px solid var(--lh-paper-soft);
+  }
+  .summary-row:first-of-type{border-top:none;}
+  .summary-thumb{width:60px;height:60px;border-radius:10px;overflow:hidden;background:var(--lh-paper-soft);}
+  .summary-thumb img{width:100%;height:100%;object-fit:cover;}
+  .summary-qty{
+    width:34px;height:34px;border-radius:50%;background:var(--lh-paper-soft);color:var(--lh-gold-deep);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;
+  }
+  .summary-name{font-weight:700;}
+  .summary-price{font-weight:700;color:var(--lh-gold-deep);text-align:right;}
+  .summary-foot{
+    display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;
+  }
+  .grand-box{
+    border:1px solid var(--lh-line);border-radius:12px;padding:16px 22px;
+    display:flex;justify-content:space-between;align-items:center;gap:24px;min-width:260px;
+    font-weight:700;
+  }
+  .grand-box span:last-child{font-size:1.2rem;color:var(--lh-gold-deep);}
+  .ship-note{
+    display:flex;gap:12px;align-items:flex-start;background:var(--lh-paper-soft);
+    border-radius:12px;padding:16px 18px;font-size:.86rem;color:var(--lh-text-soft);margin-bottom:26px;
+  }
+  .ship-note svg{width:20px;height:20px;flex-shrink:0;color:var(--lh-gold-deep);}
+  @media (max-width:600px){
+    .summary-row{grid-template-columns:54px 1fr;grid-template-areas:"thumb name" "thumb meta";row-gap:4px;}
+    .summary-thumb{grid-area:thumb;}
+    .summary-name{grid-area:name;}
+    .summary-qty,.summary-price{grid-area:meta;justify-self:start;}
+    .summary-foot{flex-direction:column;align-items:stretch;}
+  }
+</style>
+</head>
+<body class="lift-shell">
+
+<div id="lift-header"></div>
+
+<div class="lift-page">
+  <a href="cart.html" class="lift-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to cart
+  </a>
+  <div class="lift-crumb">Step 1 of 3 · Review</div>
+  <h1 class="lift-page-title">Order Summary</h1>
+
+  <div class="ship-note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="6" width="13" height="11"/><path d="M14 9h4l3 3v5h-7z"/><circle cx="6" cy="19.5" r="1.6"/><circle cx="17.5" cy="19.5" r="1.6"/></svg>
+    <div>Orders placed today ship within 24–48 hours across Yaoundé and Douala, and 3–5 days elsewhere in Cameroon.</div>
+  </div>
+
+  <div id="summaryContent"></div>
+</div>
+
+<div id="lift-footer"></div>
+<div class="lift-toast" id="lift-toast"></div>
+
+<script src="../js/lift-shop.js"></script>
+<script>
+  LIFT.mountHeader('products');
+  LIFT.mountFooter();
+
+  var host = document.getElementById('summaryContent');
+  var t = LIFT.cart.totals();
+
+  if(!t.lines.length){
+    host.innerHTML =
+      '<div class="lift-empty">' +
+        '<div class="lift-empty-icon">' + LIFT.icon('receipt') + '</div>' +
+        '<h3>Nothing to review yet</h3>' +
+        '<p>Add a few products to your cart before checking out.</p>' +
+        '<a href="products.html" class="lift-btn lift-btn-primary">Browse Products</a>' +
+      '</div>';
+  } else {
+    var rows = t.lines.map(function(l){
+      return (
+        '<div class="summary-row">' +
+          '<div class="summary-thumb"><img src="' + l.img + '" alt="' + l.name + '"></div>' +
+          '<div class="summary-qty">×' + l.qty + '</div>' +
+          '<div class="summary-name">' + l.name + '</div>' +
+          '<div class="summary-price">' + LIFT.fcfa(l.lineTotal) + '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    host.innerHTML =
+      '<div class="summary-card">' +
+        '<h2>Items (' + t.count + ')</h2>' +
+        rows +
+      '</div>' +
+      '<div class="summary-foot">' +
+        '<div class="grand-box">' +
+          (t.discount ? '<span>Subtotal ' + LIFT.fcfa(t.subtotal) + ' &minus; discount ' + LIFT.fcfa(t.discount) + '</span>' : '<span>Total</span>') +
+          '<span>' + LIFT.fcfa(t.total) + '</span>' +
+        '</div>' +
+        '<a href="payment-method.html" class="lift-btn lift-btn-primary">Proceed Payment</a>' +
+      '</div>';
+  }
+</script>
+
+</body>
+</html>
