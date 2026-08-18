@@ -93,6 +93,7 @@
             '<div class="people-avatar">' + p.initial + '</div>' +
             '<h4>' + LIFT.escapeHTML(p.name) + '</h4>' +
             '<div class="role">' + LIFT.escapeHTML(p.role) + '</div>' +
+            '<a href="profile.html?user=' + encodeURIComponent(p.key) + '" class="lift-btn lift-btn-outline" style="width:100%;margin-bottom:8px;">View Profile</a>' +
             '<div class="people-actions">' +
               '<button type="button" class="lift-btn ' + (following ? 'lift-btn-outline' : 'lift-btn-primary') + ' follow-btn">' + (following ? 'Following' : 'Follow') + '</button>' +
               '<a href="messages.html?to=' + encodeURIComponent(p.key) + '" class="lift-btn lift-btn-outline">Message</a>' +

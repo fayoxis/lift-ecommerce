@@ -270,6 +270,43 @@
   .comment-form input:focus{outline:none;border-color:var(--lh-gold);}
   .comment-form button{background:var(--lh-ink);color:#fff;border:none;padding:7px 15px;border-radius:20px;font-size:.74rem;font-weight:700;cursor:pointer;}
 
+  /* ---- Contact icon row (email / call / message) ---- */
+  .contact-row{display:flex;gap:8px;}
+  .contact-icon-btn{
+    width:36px;height:36px;border-radius:50%;background:var(--lh-paper-soft);border:1px solid var(--lh-line);
+    display:flex;align-items:center;justify-content:center;color:var(--lh-text);transition:.2s ease;flex-shrink:0;
+  }
+  .contact-icon-btn svg{width:16px;height:16px;}
+  .contact-icon-btn:hover{background:var(--lh-ink);color:#fff;border-color:var(--lh-ink);transform:translateY(-2px);}
+
+  /* ---- Post menu (edit / delete own post) ---- */
+  .post-menu-wrap{position:relative;flex-shrink:0;}
+  .post-menu-btn{background:none;border:none;color:var(--lh-text-soft);cursor:pointer;padding:4px;border-radius:8px;display:flex;}
+  .post-menu-btn:hover{background:var(--lh-paper-soft);color:var(--lh-text);}
+  .post-menu-btn svg{width:16px;height:16px;}
+  .post-menu{
+    position:absolute;top:110%;right:0;background:var(--lh-surface);border:1px solid var(--lh-line);border-radius:10px;
+    box-shadow:0 12px 26px -10px rgba(0,0,0,.25);min-width:140px;padding:6px;display:none;z-index:5;
+  }
+  .post-menu.open{display:block;}
+  .post-menu-item{
+    display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;text-align:left;padding:8px 10px;
+    border-radius:7px;font-size:.82rem;font-weight:600;color:var(--lh-text);cursor:pointer;
+  }
+  .post-menu-item svg{width:14px;height:14px;flex-shrink:0;}
+  .post-menu-item:hover{background:var(--lh-paper-soft);}
+  .post-menu-item.danger{color:var(--lh-red);}
+  .post-menu-item.danger:hover{background:rgba(193,68,58,.1);}
+
+  /* ---- Comment edit / delete ---- */
+  .comment-row{align-items:flex-start;justify-content:space-between;}
+  .comment-body{flex:1;min-width:0;}
+  .comment-actions{display:flex;gap:2px;flex-shrink:0;}
+  .comment-actions button{background:none;border:none;color:var(--lh-text-soft);cursor:pointer;padding:3px;border-radius:6px;}
+  .comment-actions button:hover{background:var(--lh-paper-soft);color:var(--lh-text);}
+  .comment-actions svg{width:12px;height:12px;}
+  .edited-tag{font-style:italic;color:var(--lh-text-soft);font-size:.72rem;font-weight:500;}
+
   [data-theme="dark"] .banner-photo{background:#2A2E38;}
   [data-theme="dark"] .rank-chip.gold{background:rgba(232,169,61,.22);color:#E8C978;}
   [data-theme="dark"] .post-badge.announcement{background:rgba(107,79,160,.24);color:#C6B4EE;}

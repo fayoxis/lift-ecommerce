@@ -33,6 +33,9 @@
 
   var host = document.getElementById('profileContent');
   var user = LIFT.user.get();
+  var meKey = user ? LIFT.user.key(user) : null;
+  var pageParams = new URLSearchParams(location.search);
+  var viewKey = pageParams.get('user');
 
   if(!user){
     host.innerHTML =
@@ -42,8 +45,93 @@
         '<p>Create an account or log in to see your shopper dashboard.</p>' +
         '<a href="' + LIFT.loginUrl('#login') + '" class="lift-btn lift-btn-primary">Log In</a>' +
       '</div>';
+  } else if(viewKey && viewKey !== meKey){
+    renderPublicProfile(viewKey);
   } else {
     renderProfile();
+  }
+
+  /* ---- Public (read-only) profile of another LIFT shopper ---- */
+  function renderPublicProfile(key){
+    var f = function(v){ return LIFT.escapeHTML(v || ''); };
+    var person = LIFT.social.getUser(key);
+    if(!person){
+      host.innerHTML =
+        '<div class="lift-empty">' +
+          '<div class="lift-empty-icon">' + LIFT.icon('user') + '</div>' +
+          '<h3>Shopper not found</h3>' +
+          '<p>This account may no longer exist on this device.</p>' +
+          '<a href="people.html" class="lift-btn lift-btn-primary">Find People</a>' +
+        '</div>';
+      return;
+    }
+
+    document.querySelector('.lift-page-title').textContent = person.name + '’s Profile';
+
+    var following = LIFT.social.isFollowing(key);
+
+    host.innerHTML =
+      '<div class="dash-wrap public-profile">' +
+        '<div class="dash-main" style="grid-column:1 / -1;">' +
+          '<div class="banner-card">' +
+            '<div class="banner-photo">' +
+              '<img src="' + (person.banner || 'https://images.unsplash.com/photo-1517705008128-361805f42e86?w=1400&q=80') + '" alt="">' +
+            '</div>' +
+            '<div class="banner-avatar-row">' +
+              '<div class="banner-avatar">' + (person.avatar ? '<img src="' + person.avatar + '" alt="">' : f(person.initial)) + '</div>' +
+            '</div>' +
+            '<div class="banner-info-row">' +
+              '<div class="banner-id">' +
+                '<h2>' + f(person.name) + '</h2>' +
+                '<div class="role">' + f(person.role) + '</div>' +
+                '<div class="joined">' + f(person.city ? person.city + ', Cameroon' : 'Cameroon') + '</div>' +
+              '</div>' +
+              '<div class="banner-actions">' +
+                '<div class="contact-row">' +
+                  (person.email ? '<a class="contact-icon-btn" href="mailto:' + f(person.email) + '" title="Email ' + f(person.name) + '" aria-label="Email">' + LIFT.icon('mail') + '</a>' : '') +
+                  (person.phone ? '<a class="contact-icon-btn" href="tel:' + f(person.phone) + '" title="Call ' + f(person.name) + '" aria-label="Call">' + LIFT.icon('phone') + '</a>' : '') +
+                  '<a class="contact-icon-btn" href="messages.html?to=' + encodeURIComponent(key) + '" title="Message ' + f(person.name) + '" aria-label="Message">' + LIFT.icon('message-circle') + '</a>' +
+                '</div>' +
+                '<button type="button" class="edit-btn" id="publicFollowBtn">' +
+                  (following ? LIFT.icon('check') + 'Following' : LIFT.icon('plus') + 'Follow') +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="split-row" style="grid-template-columns:1fr 1fr;margin-top:22px;">' +
+            '<div class="panel">' +
+              '<h3>Followers</h3>' +
+              '<div class="stats-grid" style="grid-template-columns:1fr;">' +
+                '<div class="stat-tile"><div class="ic">' + LIFT.icon('users') + '</div><div><strong>' + LIFT.social.followersList(key).length + '</strong><span>Followers</span></div></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="panel">' +
+              '<h3>Following</h3>' +
+              '<div class="stats-grid" style="grid-template-columns:1fr;">' +
+                '<div class="stat-tile"><div class="ic">' + LIFT.icon('plus') + '</div><div><strong>' + LIFT.social.followingList(key).length + '</strong><span>Following</span></div></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="panel" id="publicFeedPanel" style="margin-top:22px;"><h3>' + f(person.name) + '’s Feed</h3><div id="publicPostsList"></div></div>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('publicFollowBtn').addEventListener('click', function(){
+      if(LIFT.social.isFollowing(key)){
+        LIFT.social.unfollow(key);
+        LIFT.toast('Unfollowed ' + person.name);
+      } else {
+        LIFT.social.follow(key);
+        LIFT.toast('Now following ' + person.name);
+      }
+      renderPublicProfile(key);
+    });
+
+    renderPostList(document.getElementById('publicPostsList'), LIFT.feed.listByAuthor(key), function(){ renderPublicProfile(key); }, {
+      emptyIcon: 'newspaper', emptyTitle: 'No posts yet', emptyText: f(person.name) + ' hasn’t posted anything yet.'
+    });
   }
 
   function renderProfile(){
@@ -147,6 +235,11 @@
                 '<div class="joined">' + (user.joinedLabel ? 'Joined ' + f(user.joinedLabel) : f(user.city ? user.city + ', Cameroon' : 'Cameroon')) + '</div>' +
               '</div>' +
               '<div class="banner-actions">' +
+                '<div class="contact-row">' +
+                  '<a class="contact-icon-btn" href="mailto:' + f(user.email || '') + '" title="Your email" aria-label="Email">' + LIFT.icon('mail') + '</a>' +
+                  (user.phone ? '<a class="contact-icon-btn" href="tel:' + f(user.phone) + '" title="Your phone" aria-label="Call">' + LIFT.icon('phone') + '</a>' : '') +
+                  '<a class="contact-icon-btn" href="messages.html" title="Your messages" aria-label="Messages">' + LIFT.icon('message-circle') + '</a>' +
+                '</div>' +
                 '<div>' +
                   '<div class="social-label">Social Media</div>' +
                   '<div class="social-mini">' +
@@ -278,10 +371,10 @@
       document.getElementById('railCount').textContent = list.length;
       document.getElementById('railList').innerHTML = list.length
         ? list.map(function(p){
-            return '<div class="rail-row" data-key="' + p.key + '">' +
+            return '<a class="rail-row" href="profile.html?user=' + encodeURIComponent(p.key) + '" style="text-decoration:none;color:inherit;" data-key="' + p.key + '">' +
               '<div class="rail-thumb initial">' + (p.avatar ? '<img src="' + p.avatar + '" alt="">' : p.initial) + '</div>' +
               '<div class="rail-name">' + f(p.name) + '</div>' +
-            '</div>';
+            '</a>';
           }).join('')
         : '<div class="rail-empty">No followers yet  share your feed posts to grow your audience.</div>';
     }
@@ -293,8 +386,10 @@
       document.getElementById('railList').innerHTML = list.length
         ? list.map(function(p){
             return '<div class="rail-row" data-key="' + p.key + '">' +
-              '<div class="rail-thumb initial">' + (p.avatar ? '<img src="' + p.avatar + '" alt="">' : p.initial) + '</div>' +
-              '<div class="rail-name">' + f(p.name) + '</div>' +
+              '<a href="profile.html?user=' + encodeURIComponent(p.key) + '" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-decoration:none;color:inherit;">' +
+                '<div class="rail-thumb initial">' + (p.avatar ? '<img src="' + p.avatar + '" alt="">' : p.initial) + '</div>' +
+                '<div class="rail-name">' + f(p.name) + '</div>' +
+              '</a>' +
               '<button type="button" class="rail-unfollow">Unfollow</button>' +
             '</div>';
           }).join('')
@@ -463,26 +558,34 @@
   }
 
   function renderProfilePosts(){
-    var listHost = document.getElementById('profilePostsList');
-    var posts = LIFT.feed.list();
+    renderPostList(document.getElementById('profilePostsList'), LIFT.feed.list(), renderProfilePosts, {
+      emptyIcon: 'newspaper', emptyTitle: 'No posts yet', emptyText: 'Be the first to share an announcement or publicize a product above.'
+    });
+  }
+
+  /* ---- Shared post-list renderer: used by both the own-profile feed and
+     the read-only public profile feed. Handles like/comment/share plus
+     edit & delete for posts and comments you own. ---- */
+  function renderPostList(listHost, posts, rerender, empty){
+    if(!listHost) return;
 
     if(!posts.length){
       listHost.innerHTML =
         '<div class="lift-empty">' +
-          '<div class="lift-empty-icon">' + LIFT.icon('newspaper') + '</div>' +
-          '<h3>No posts yet</h3>' +
-          '<p>Be the first to share an announcement or publicize a product above.</p>' +
+          '<div class="lift-empty-icon">' + LIFT.icon(empty.emptyIcon) + '</div>' +
+          '<h3>' + empty.emptyTitle + '</h3>' +
+          '<p>' + empty.emptyText + '</p>' +
         '</div>';
       return;
     }
 
-    listHost.innerHTML = posts.map(profilePostTemplate).join('');
+    listHost.innerHTML = posts.map(postTemplate).join('');
 
     listHost.querySelectorAll('.post-action.like-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
         if(!LIFT.requireLogin('Log in to like posts')) return;
         LIFT.feed.toggleLike(btn.dataset.id);
-        renderProfilePosts();
+        rerender();
       });
     });
     listHost.querySelectorAll('.post-action.comment-toggle').forEach(function(btn){
@@ -503,7 +606,7 @@
         if(!text) return;
         LIFT.feed.addComment(form.dataset.id, text);
         input.value = '';
-        renderProfilePosts();
+        rerender();
       });
     });
     listHost.querySelectorAll('.ppc-add').forEach(function(btn){
@@ -513,25 +616,95 @@
         LIFT.toast(LIFT.getProduct(btn.dataset.id).name + ' added to cart');
       });
     });
+
+    // ---- Post menu (edit / delete own posts) ----
+    listHost.querySelectorAll('.post-menu-btn').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var menu = listHost.querySelector('.post-menu[data-id="' + btn.dataset.id + '"]');
+        var wasOpen = menu.classList.contains('open');
+        listHost.querySelectorAll('.post-menu.open').forEach(function(m){ m.classList.remove('open'); });
+        if(!wasOpen) menu.classList.add('open');
+      });
+    });
+    listHost.querySelectorAll('.post-edit-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var post = LIFT.feed.get(btn.dataset.id);
+        if(!post) return;
+        var next = window.prompt('Edit your post', post.text || '');
+        if(next === null) return;
+        next = next.trim();
+        if(!next && !post.img && !post.productId){ LIFT.toast('Post text can\'t be empty'); return; }
+        LIFT.feed.edit(post.id, { text: next });
+        LIFT.toast('Post updated');
+        rerender();
+      });
+    });
+    listHost.querySelectorAll('.post-delete-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!window.confirm('Delete this post? This can\'t be undone.')) return;
+        LIFT.feed.remove(btn.dataset.id);
+        LIFT.toast('Post deleted');
+        rerender();
+      });
+    });
+
+    // ---- Comment edit / delete (own comments) ----
+    listHost.querySelectorAll('.comment-edit-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var post = LIFT.feed.get(btn.dataset.pid);
+        var comment = post && post.comments.find(function(c){ return c.id === btn.dataset.cid; });
+        if(!comment) return;
+        var next = window.prompt('Edit your comment', comment.text || '');
+        if(next === null) return;
+        next = next.trim();
+        if(!next){ LIFT.toast('Comment can\'t be empty'); return; }
+        LIFT.feed.editComment(btn.dataset.pid, btn.dataset.cid, next);
+        LIFT.toast('Comment updated');
+        rerender();
+      });
+    });
+    listHost.querySelectorAll('.comment-del-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!window.confirm('Delete this comment?')) return;
+        LIFT.feed.removeComment(btn.dataset.pid, btn.dataset.cid);
+        LIFT.toast('Comment deleted');
+        rerender();
+      });
+    });
+
+    document.addEventListener('click', function closeMenus(){
+      listHost.querySelectorAll('.post-menu.open').forEach(function(m){ m.classList.remove('open'); });
+    }, { once: true });
   }
 
-  function profilePostTemplate(p){
+  function postTemplate(p){
     var f = LIFT.escapeHTML;
     var liked = LIFT.feed.isLiked(p);
     var product = p.productId ? LIFT.getProduct(p.productId) : null;
     var badgeLabel = p.type === 'product' ? 'Product' : p.type === 'purchase' ? 'Purchase' : 'Announcement';
+    var isMine = meKey && p.authorKey === meKey;
 
     return (
       '<div class="post-card">' +
         '<div class="post-head">' +
           '<div class="post-avatar">' + (p.authorAvatar ? '<img src="' + p.authorAvatar + '" alt="">' : f(p.authorInitial)) + '</div>' +
-          '<div>' +
+          '<div style="flex:1;min-width:0;">' +
             '<div class="post-name-row">' +
               '<span class="post-name">' + f(p.authorName) + '</span>' +
               '<span class="post-badge ' + p.type + '">' + badgeLabel + '</span>' +
             '</div>' +
-            '<span class="post-time">' + profileTimeAgo(p.createdAt) + '</span>' +
+            '<span class="post-time">' + profileTimeAgo(p.createdAt) + (p.edited ? ' · edited' : '') + '</span>' +
           '</div>' +
+          (isMine ?
+            '<div class="post-menu-wrap">' +
+              '<button type="button" class="post-menu-btn" data-id="' + p.id + '" aria-label="Post options">' + LIFT.icon('more-vertical') + '</button>' +
+              '<div class="post-menu" data-id="' + p.id + '">' +
+                '<button type="button" class="post-menu-item post-edit-btn" data-id="' + p.id + '">' + LIFT.icon('pencil') + 'Edit</button>' +
+                '<button type="button" class="post-menu-item danger post-delete-btn" data-id="' + p.id + '">' + LIFT.icon('trash-2') + 'Delete</button>' +
+              '</div>' +
+            '</div>'
+          : '') +
         '</div>' +
         (p.text ? '<div class="post-text">' + f(p.text) + '</div>' : '') +
         (p.img ? '<div class="post-img"><img src="' + p.img + '" alt=""></div>' : '') +
@@ -558,7 +731,18 @@
         '</div>' +
         '<div class="comments" data-id="' + p.id + '">' +
           p.comments.map(function(c){
-            return '<div class="comment-row"><strong>' + f(c.authorName) + '</strong>' + f(c.text) + '</div>';
+            var cMine = meKey && c.authorKey === meKey;
+            return (
+              '<div class="comment-row">' +
+                '<div class="comment-body"><strong>' + f(c.authorName) + '</strong>' + f(c.text) + (c.edited ? ' <em class="edited-tag">(edited)</em>' : '') + '</div>' +
+                (cMine ?
+                  '<div class="comment-actions">' +
+                    '<button type="button" class="comment-edit-btn" data-pid="' + p.id + '" data-cid="' + c.id + '" aria-label="Edit comment">' + LIFT.icon('pencil') + '</button>' +
+                    '<button type="button" class="comment-del-btn" data-pid="' + p.id + '" data-cid="' + c.id + '" aria-label="Delete comment">' + LIFT.icon('trash-2') + '</button>' +
+                  '</div>'
+                : '') +
+              '</div>'
+            );
           }).join('') +
           '<form class="comment-form" data-id="' + p.id + '">' +
             '<input type="text" placeholder="Write a comment…">' +

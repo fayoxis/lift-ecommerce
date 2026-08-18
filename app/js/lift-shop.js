@@ -436,6 +436,16 @@
     var match = users.find(function (u) { return userKey(u) === key; });
     return match ? userLabel(match) : key;
   }
+  function getUserByKey(key) {
+    if (!key) return null;
+    var match = getUsers().find(function (u) { return userKey(u) === key; });
+    if (!match) return null;
+    return {
+      key: key, name: userLabel(match), initial: userInitial(match), avatar: match.avatar || null,
+      banner: match.banner || null, role: match.role || "LIFT Shopper", email: match.email || null,
+      phone: match.phone || null, city: match.city || null, joinedLabel: match.joinedLabel || null
+    };
+  }
   function getFollowMap() { return readJSON(K_FOLLOWS, {}); }
   function saveFollowMap(map) { writeJSON(K_FOLLOWS, map); refreshFollowBadges(); }
 
@@ -517,12 +527,32 @@
     var me = userKey(getCurrentUser());
     text = (text || "").trim();
     if (!me || !toKey || !text) return null;
-    var msg = { id: uid("MSG"), from: me, to: toKey, text: text, at: Date.now(), read: false };
+    var msg = { id: uid("MSG"), from: me, to: toKey, text: text, at: Date.now(), read: false, edited: false };
     var all = allMessages();
     all.push(msg);
     saveAllMessages(all);
     notify(toKey, "message", displayNameFor(me) + " sent you a message", "messages.html?to=" + encodeURIComponent(me));
     return msg;
+  }
+  function editMessage(msgId, text) {
+    var me = userKey(getCurrentUser());
+    text = (text || "").trim();
+    if (!me || !text) return false;
+    var all = allMessages();
+    var msg = all.find(function (m) { return m.id === msgId; });
+    if (!msg || msg.from !== me) return false;
+    msg.text = text;
+    msg.edited = true;
+    saveAllMessages(all);
+    return true;
+  }
+  function deleteMessage(msgId) {
+    var me = userKey(getCurrentUser());
+    var all = allMessages();
+    var msg = all.find(function (m) { return m.id === msgId; });
+    if (!msg || msg.from !== me) return false;
+    saveAllMessages(all.filter(function (m) { return m.id !== msgId; }));
+    return true;
   }
   function conversationWith(otherKey) {
     var me = userKey(getCurrentUser());
@@ -641,11 +671,47 @@
     var all = allPosts();
     var post = all.find(function (p) { return p.id === postId; });
     if (!post) return null;
-    var comment = { authorKey: me, authorName: userLabel(u), text: text, at: Date.now() };
+    var comment = { id: uid("CMT"), authorKey: me, authorName: userLabel(u), text: text, at: Date.now() };
     post.comments.push(comment);
     savePosts(all);
     if (post.authorKey !== me) notify(post.authorKey, "comment", displayNameFor(me) + " commented on your post", "profile.html");
     return comment;
+  }
+  function editComment(postId, commentId, text) {
+    var me = userKey(getCurrentUser());
+    text = (text || "").trim();
+    if (!me || !text) return false;
+    var all = allPosts();
+    var post = all.find(function (p) { return p.id === postId; });
+    if (!post) return false;
+    var comment = post.comments.find(function (c) { return c.id === commentId; });
+    if (!comment || comment.authorKey !== me) return false;
+    comment.text = text;
+    comment.edited = true;
+    savePosts(all);
+    return true;
+  }
+  function removeComment(postId, commentId) {
+    var me = userKey(getCurrentUser());
+    var all = allPosts();
+    var post = all.find(function (p) { return p.id === postId; });
+    if (!post) return false;
+    var comment = post.comments.find(function (c) { return c.id === commentId; });
+    if (!comment || (comment.authorKey !== me && post.authorKey !== me)) return false;
+    post.comments = post.comments.filter(function (c) { return c.id !== commentId; });
+    savePosts(all);
+    return true;
+  }
+  function editPost(postId, updates) {
+    var me = userKey(getCurrentUser());
+    var all = allPosts();
+    var post = all.find(function (p) { return p.id === postId; });
+    if (!post || post.authorKey !== me) return false;
+    if (typeof updates.text === "string") post.text = updates.text.trim();
+    if ("img" in updates) post.img = updates.img;
+    post.edited = true;
+    savePosts(all);
+    return true;
   }
   function removePost(postId) {
     var me = userKey(getCurrentUser());
@@ -756,6 +822,14 @@
     'user': '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/> <circle cx="12" cy="7" r="4"/>',
     'users-round': '<path d="M18 21a8 8 0 0 0-16 0"/> <circle cx="10" cy="8" r="5"/> <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/>',
     'volume-2': '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/> <path d="M16 9a5 5 0 0 1 0 6"/> <path d="M19.364 18.364a9 9 0 0 0 0-12.728"/>',
+    'pencil': '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/> <path d="m15 5 4 4"/>',
+    'trash-2': '<path d="M10 11v6"/> <path d="M14 11v6"/> <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/> <path d="M3 6h18"/> <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    'phone': '<path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.633 1.6l-.467.355a1 1 0 0 0-.302 1.214 14.9 14.9 0 0 0 6.334 6.4Z"/>',
+    'video': '<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/> <rect x="2" y="6" width="14" height="12" rx="2"/>',
+    'more-vertical': '<circle cx="12" cy="12" r="1"/> <circle cx="12" cy="5" r="1"/> <circle cx="12" cy="19" r="1"/>',
+    'x': '<path d="M18 6 6 18"/> <path d="m6 6 12 12"/>',
+    'check': '<path d="M20 6 9 17l-5-5"/>',
+    'phone-off': '<path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1-1a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 17.72V20a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4 2h2.28a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11l-1.27 1.27"/> <line x1="2" y1="2" x2="22" y2="22"/>',
   };
 
   function icon(name, cls){
@@ -1132,15 +1206,16 @@
     social: {
       listOtherUsers: listOtherUsers, isFollowing: isFollowing, follow: follow, unfollow: unfollow,
       followingList: followingList, followersList: followersList, followersCount: followersCount, followingCount: followingCount,
-      displayNameFor: displayNameFor
+      displayNameFor: displayNameFor, getUser: getUserByKey
     },
     messages: {
-      send: sendMessage, conversationWith: conversationWith, inboxThreads: inboxThreads,
+      send: sendMessage, edit: editMessage, remove: deleteMessage, conversationWith: conversationWith, inboxThreads: inboxThreads,
       markRead: markThreadRead, unreadCount: unreadMessageCount
     },
     feed: {
-      create: createPost, list: listFeed, listByAuthor: listFeedByAuthor, get: getPost,
-      toggleLike: toggleLike, isLiked: isLikedByMe, addComment: addComment, remove: removePost
+      create: createPost, edit: editPost, list: listFeed, listByAuthor: listFeedByAuthor, get: getPost,
+      toggleLike: toggleLike, isLiked: isLikedByMe, addComment: addComment, editComment: editComment,
+      removeComment: removeComment, remove: removePost
     },
     notifications: {
       list: listNotifications, unreadCount: unreadNotifCount,
